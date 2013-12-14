@@ -30,8 +30,9 @@ fi
 
 # Default parameters
 APPS_NEEDED="perl make ${CROSS_COMPILE}gcc sparse patch git realpath basename" 
-# Use all max num CPUs (leave 1 alone)
-DEF_CPUS=`cat /proc/cpuinfo |grep "^processor"|sort|tail -1|cut -d ':' -f2`
+
+# Use all max num CPUs 
+DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
