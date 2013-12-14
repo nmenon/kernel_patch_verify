@@ -1,0 +1,622 @@
+#!/bin/bash
+#
+# Kernel Patch tester to run some generic kernel static checks
+#
+# Dec 14, 2013
+#
+# Copyright (C) 2013 Texas Instruments Incorporated - http://www.ti.com/
+#	Nishanth Menon
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed "as is" WITHOUT ANY WARRANTY of any
+# kind, whether express or implied; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# NOTE: smatch: (sudo apt-get install sqlite3 libsqlite3-dev llvm)
+#  - http://linuxplumbersconf.com/2011/ocw//system/presentations/165/original/transcript.txt
+#  - http://smatch.sf.net
+# spatch is provided by the coccinelle package in ubuntu
+
+if [ -z "$ARCH" ]; then
+	export ARCH=arm
+fi
+if [ -z "$CROSS_COMPILE" ]; then
+	export CROSS_COMPILE=arm-linux-gnueabi-
+fi
+
+# Default parameters
+APPS_NEEDED="perl make ${CROSS_COMPILE}gcc sparse patch git realpath basename" 
+# Use all max num CPUs (leave 1 alone)
+DEF_CPUS=`cat /proc/cpuinfo |grep "^processor"|sort|tail -1|cut -d ':' -f2`
+DEFAULT_LOG="./report-kernel-patch-verify.txt"
+DEFAULT_TMPDIR="/tmp"
+
+kmake_single() {
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j1 $*
+}
+
+kmake() {
+	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j$CPUS $*
+}
+
+###################
+# Run generic test operation
+run_test() {
+	LOG_EXT=$1
+	shift
+	LOG_DIR=$1
+	shift
+	TEST=$1
+	shift
+	echo -e "\tRunning test: $TEST ($LOG_EXT)"
+	SSEC=`date "+%s"`
+	eval $TEST $* 2>$LOG_DIR/$TEST-$LOG_EXT
+	ESEC=`date "+%s"`
+	DELTA=`expr $ESEC - $SSEC`
+	echo "took $DELTA seconds"
+}
+
+run_test_dummy() {
+	LOG_EXT=$1
+	shift
+	LOG_DIR=$1
+	shift
+	TEST=$1
+	shift
+	echo -e "\tRunning test: $TEST ($LOG_EXT)"
+	touch $LOG_DIR/$TEST-$LOG_EXT
+}
+
+###################
+# Basic tests to run on the patch itself
+ptest_am() {
+	git am $1 >/dev/null
+}
+
+ptest_check() {
+	($KDIR/scripts/checkpatch.pl --strict $1 |grep -v `basename $1`|grep -v "^$"|grep -v "^total")1>&2
+}
+
+###################
+# Basic tests to run on the files impacted by the patch
+ftest_check_kdoc() {
+	$KDIR/scripts/kernel-doc $* >/dev/null
+}
+ftest_check_includes() {
+	$KDIR/scripts/checkincludes.pl $* 1>&2
+}
+
+ftest_check_headerdeps() {
+	$KDIR/scripts/headerdep.pl $* 1>&2
+}
+
+###################
+# Basic build test
+btest_basic() {
+	for i in $*
+	do
+		if [ -f "$i" ]; then
+			rm $i
+			kmake_single C=2 $i > /dev/null
+		fi
+	done
+}
+
+btest_sparse() {
+	for i in $*
+	do
+		if [ -f "$i" ]; then
+			kmake_single C=2 $i > /dev/null
+		fi
+	done
+}
+
+btest_smatch() {
+	for i in $*
+	do
+		if [ -f "$i" ]; then
+			kmake_single CHECK="smatch -p=kernel" C=2 $i | egrep '(warn|error):' 1>&2
+		fi
+	done
+}
+
+btest_cocci() {
+	for i in $*
+	do
+		if [ -f "$i" ]; then
+			kmake_single C=2 CHECK="scripts/coccicheck" MODE=report $i >/dev/null
+		fi
+	done
+}
+
+btest_stack() {
+	kmake checkstack 1>&2
+}
+
+btest_namespace() {
+	kmake namespacecheck 1>&2
+}
+
+btest_include() {
+	kmake_single includecheck 1>&2
+}
+
+btest_headers_check() {
+	kmake_single headers_check 1>&2
+}
+
+btest_kbuild() {
+	kmake C=1 zImage dtbs $MODULES>/dev/null
+}
+
+defconfig() {
+	if [ -n "$DEFCONFIG" ]; then
+		kmake $DEFCONFIG >/dev/null
+	else
+		cp $TEST_DIR/.config .config
+		kmake oldconfig >/dev/null
+	fi
+}
+
+build_all_clean() {
+	(kmake clean 2>/dev/null )>/dev/null
+	kmake_single zImage dtbs $MODULES >/dev/null
+}
+build_all() {
+	(kmake zImage dtbs $MODULES 2>/dev/null) >/dev/null
+}
+
+# executed in sequence
+tests_start() {
+	echo "Running start tests.."
+	TESTS_ALL_SET="defconfig"
+	if [ -n "$COMPLETE_TESTS" ]; then
+		TESTS_ALL_SET="$TESTS_ALL_SET build_all btest_stack btest_namespace btest_include btest_headers_check"
+	fi
+	for test_s in $TESTS_ALL_SET
+	do
+		run_test start $TEST_DIR $test_s
+	done
+	if [ -n "$COMPLETE_TESTS" ]; then
+		build_all
+	fi
+}
+
+tests_end() {
+	echo "Running END tests.."
+	for test_s in $TESTS_ALL_SET
+	do
+		run_test end $TEST_DIR $test_s
+	done
+}
+
+report_tests_end() {
+	log_marker "::Complete test results START::"
+	report_tests $TESTS_ALL_SET
+	log_marker "::Complete test results END::"
+}
+
+test_patch() {
+	patch=$1
+	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
+	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
+
+	ptest_check $1
+	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
+	TESTS_B_SET="btest_basic btest_sparse"
+	TESTS_P_SET="ptest_am ptest_check"
+	if [ -n "$COMPLETE_TESTS" ]; then
+		TESTS_B_SET="$TESTS_B_SET btest_cocci btest_smatch"
+	fi
+
+	run_test start $TEST_DIR defconfig
+	# run twice - we just want end build errors..
+	run_test start $TEST_DIR btest_kbuild $ofiles
+	run_test start $TEST_DIR btest_kbuild $ofiles
+
+	for test_s in $TESTS_B_SET
+	do
+		run_test start $TEST_DIR $test_s $ofiles
+	done
+
+	for test_s in $TESTS_C_SET
+	do
+		run_test start $TEST_DIR $test_s $cfiles
+	done
+
+	for test_s in $TESTS_P_SET
+	do
+		run_test_dummy start $TEST_DIR $test_s $patch
+		run_test end $TEST_DIR $test_s $patch
+	done
+
+	run_test end $TEST_DIR defconfig
+	# run twice - we just want end build errors..
+	run_test end $TEST_DIR btest_kbuild $ofiles
+	run_test end $TEST_DIR btest_kbuild $ofiles
+
+	for test_s in $TESTS_B_SET
+	do
+		run_test end $TEST_DIR $test_s $ofiles
+	done
+
+	for test_s in $TESTS_C_SET
+	do
+		run_test end $TEST_DIR $test_s $cfiles
+	done
+}
+
+report_patch() {
+	log_marker "::test results START $1::"
+	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET
+	log_marker "::test results END $1::"
+}
+
+###################
+# Cleanup handler
+on_exit() {
+	echo "Cleaning up..."
+	if [ -n "$DEBUG_MODE" ]; then
+		return 0;
+	fi
+	if [ -f "$TEST_DIR/.config" ]; then
+		echo "restoring .config"
+		cp $TEST_DIR/.config .config
+	fi
+	if [ -n "$TEST_DIR" -a -d "$TEST_DIR" ]; then
+		echo "Removing temp dir"
+		rm -rf $TEST_DIR 2>/dev/null
+	fi
+	if [ -n "$CURRENT_BRANCH" ]; then
+		echo "Restoring to $CURRENT_BRANCH branch"
+		git reset --hard 2>/dev/null
+		git checkout $CURRENT_BRANCH 2>/dev/null
+	fi
+	if [ -n "$TEST_BRANCH_NAME" ]; then
+		bexists=`git branch|grep "$TEST_BRANCH_NAME" 2>/dev/null`
+		if [ -n "$bexists" ]; then
+			echo "Cleaning up testing branch"
+			git branch -D $TEST_BRANCH_NAME
+		fi
+	fi
+}
+
+###################
+# Logging stuff
+log_marker() {
+	MARKER_STRING="================"
+	if [ "$*" ]; then
+		echo "$MARKER_STRING">>$LOG_FILE
+		echo "$*">>$LOG_FILE
+		echo -e "$MARKER_STRING\n">>$LOG_FILE
+	else
+		echo -e "$MARKER_STRING\n\n">>$LOG_FILE
+	fi
+}
+
+log_me() {
+	echo "$*">>$LOG_FILE
+}
+
+report_tests() {
+	TESTS=$*
+	PASS=1
+	for test in $TESTS
+	do
+		start_log=$TEST_DIR/$test-start
+		end_log=$TEST_DIR/$test-end
+		diff_log=$TEST_DIR/$test-diff
+		if [ -f $start_log -a -f $end_log ]; then
+			diff -purN  $start_log $end_log > $diff_log
+		fi
+	done
+	for test in $TESTS
+	do
+		diff_log=$TEST_DIR/$test-diff
+		if [ -f $diff_log ]; then
+			size=`stat --format "%s" $diff_log`
+			if [ $size -ne 0 ]; then
+				log_me "$test FAILED?"
+				PASS=0
+			fi
+		fi
+	done
+	if [ $PASS -eq 1 ]; then
+		log_me Passed: $TESTS
+	else 
+		for test in $TESTS
+		do
+			diff_log=$TEST_DIR/$test-diff
+			if [ -f $diff_log ]; then
+				size=`stat --format "%s" $diff_log`
+				if [ $size -ne 0 ]; then
+					log_marker "$test results:"
+					cat $diff_log >>$LOG_FILE
+				fi
+			fi
+		done
+	fi
+}
+
+report_end() {
+
+	log_marker "CPUS used: $CPUS"
+	log_marker "Application versions"
+	for app in $APPS_NEEDED
+	do
+		echo "version of $app:" >>$LOG_FILE
+		(which $app 2>&1) >> $LOG_FILE
+		($app --version 2>&1) >> $LOG_FILE
+		echo >>$LOG_FILE
+	done
+	log_marker
+	END_DATE=`date`
+	END_SEC=`date "+%s"`
+	DELTA=`expr $END_SEC - $START_SEC`
+	log_marker "Test duration: $DELTA seconds (Started $START_DATE, ended $END_DATE)"
+}
+
+###################
+# Lets see if we can recommend any missing apps
+check_missing_application() {
+	APPS_MISSING=""
+	for i in $APPS_NEEDED
+	do
+		which "$i" > /dev/null
+		if [ $? -ne 0 ]; then
+			APPS_MISSING="$APPS_MISSING $i"
+		fi
+	done
+	if [ -n "$APPS_MISSING" ]; then
+		return 2
+	fi
+	return 0
+}
+
+recommend_missing_application() {
+	check_missing_application
+	if [ -n "$APPS_MISSING" ]; then
+		echo "Missing Applications in system: $APPS_MISSING" >&2
+		# Lets see if we can recommend an application
+		if [ -x /usr/lib/command-not-found ]; then
+			for i in $APPS_MISSING
+			do
+				/usr/lib/command-not-found --no-failure-msg $i
+			done
+		fi
+		return 2
+	fi
+	return 0
+}
+
+APP_NAME=$0
+###################
+# Help
+usage() {
+	echo "$*" >&2
+	echo "Usage: $APP_NAME [-j CPUs] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b bas_branch [-t head_branch]]" >&2
+	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEFAULT_TMPDIR)" >&2
+	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
+	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
+	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
+	echo -e "\t-c defconfig:_name (default uses current .config + oldconfig)" >&2
+	echo -e "\t-1: test the tip of current branch (just a single patch)" >&2
+	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
+	echo -e "\t-b base_branch: test patches from base_branch" >&2
+	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
+	echo >&2
+	echo "NOTE: only one of -1, -p or (-b,-t) should be used - but at least one of these should be used" >&2
+	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
+	echo >&2
+	echo "Example usage 1: verify last commmitted patch" >&2
+	echo -e "\t $APP_NAME -1" >&2
+	echo "Example usage 2: verify on top of current branch patches from location ~/tmp/test-patches" >&2
+	echo -e "\t $APP_NAME -p ~/tmp/test-patches" >&2
+	echo "Example usage 3: verify *from* branch 'base_branch' till current branch" >&2
+	echo -e "\t $APP_NAME -b base_branch" >&2
+	echo "Example usage 4: verify from current branch, all patches *until* 'test_branch'" >&2
+	echo -e "\t $APP_NAME -t test_branch" >&2
+	echo "Example usage 5: verify from branch, all patches from 'base_branch' until 'test_branch'" >&2
+	echo -e "\t $APP_NAME -b base_branch -t test_branch" >&2
+	echo "Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" >&2
+	echo -e "\t $APP_NAME -b base_branch -t test_branch -C" >&2
+	check_missing_application
+	if [ $? -ne 0 ]; then
+		recommend_missing_application
+	fi
+}
+
+while getopts "j: c:T:l:p:b:t:1Cd" opt; do
+	case $opt in
+	j)
+		CPUS=$OPTARG
+	;;
+	d)
+		DEBUG_MODE=1
+	;;
+	c)
+		DEFCONFIG=$OPTARG
+	;;
+	l)
+		LOG_FILE=$OPTARG
+	;;
+	T)
+		TEST_B_DIR=$OPTARG
+		if [ ! -d "$TEST_B_DIR" ]; then
+			usage "$TEST_B_DIR does not exist"
+			exit 1
+		fi
+		if [ ! -w "$TEST_B_DIR" ]; then
+			usage "$TEST_B_DIR is not writable?"
+			exit 1
+		fi
+	;;
+	C)
+		COMPLETE_TESTS=1
+		APPS_NEEDED="$APPS_NEEDED smatch spatch"
+		MODULES=modules
+	;;
+	1)
+		TEST_TOP=yes
+		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+			usage "cannot use -1 with other options"
+			exit 1;
+		fi
+	;;
+	p)
+		PATCH_DIR=$OPTARG
+		if [ -n "$TEST_TOP" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+			usage "cannot use -p with other options"
+			exit 1;
+		fi
+		if [ ! -d "$PATCH_DIR" ]; then
+			usage "Patch Directory $PATCH_DIR does not exist?"
+			exit 1;
+		fi
+		PATCHES=`ls $PATCH_DIR/*.patch|grep -v "cover-letter.patch$"|xargs realpath`
+		PATCHCOUNT=`ls $PATCHES|wc -l`
+		if [ $PATCHCOUNT -eq 0 ]; then
+			usage "Patch directory $PATCH_DIR has no patches?"
+			exit 1;
+		fi
+	;;
+	b)
+		BASE_BRANCH=$OPTARG
+		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+			usage "cannot use -b with other options"
+			exit 1;
+		fi
+	;;
+	t)
+		TEST_BRANCH=$OPTARG
+		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+			usage "cannot use -t with other options"
+			exit 1;
+		fi
+		CHECK=`git branch|grep $TEST_BRANCH 2>/dev/null`
+		if [ -z "$CHECK" ]; then
+			usage "Test branch $TEST_BRANCH does not exist?"
+			exit 1
+		fi
+	;;
+	\?)
+		usage "Invalid option: -$OPTARG"
+		exit 1
+	;;
+	:)
+		usage "Option -$OPTARG requires an argument."
+		exit 1
+	;;
+	esac
+done
+
+if [ -z "$TEST_BRANCH" -a -z "$BASE_BRANCH" -a -z "$PATCH_DIR" -a -z "$TEST_TOP" ]; then
+	usage "Need at least 1 test type"
+	exit 2
+fi
+
+check_missing_application
+if [ $? -ne 0 ]; then
+	usage "Missing apps"
+	exit 2
+fi
+
+if [ -z "$CPUS" ]; then
+	CPUS=$DEF_CPUS
+fi
+
+if [ -z "$LOG_FILE" ]; then
+	LOG_FILE=$DEFAULT_LOG
+fi
+
+if [ -z "$TEST_B_DIR" ]; then
+	TEST_B_DIR=$DEFAULT_TMPDIR
+fi
+KDIR=`pwd`
+
+CURRENT_BRANCH=`git branch | grep '^*' | cut -d " " -f 2`
+# if we have base or testing branch missing, populate the other as the current branch
+if [ -n "$TEST_BRANCH" -a -z "$BASE_BRANCH" ]; then
+	BASE_BRANCH=$CURRENT_BRANCH
+fi
+
+if [ -n "$BASE_BRANCH" -a -z "$TEST_BRANCH" ]; then
+	TEST_BRANCH=$CURRENT_BRANCH
+fi
+
+# lets do some basic verification 
+gdiff=`git diff`
+if [ -n "$gdiff" ]; then
+	usage "git diff returned data.. you may want to do git reset --hard or stash changes"
+	exit 3
+fi
+
+if [ "$CURRENT_BRANCH" = "(no branch)" ]; then
+	usage "You are currently on a dangling branch - please checkout a branch to proceed"
+	exit 3
+fi
+
+TEST_BRANCH_NAME=kernel-patch-verify.$RANDOM
+TEST_DIR=$TEST_B_DIR/$TEST_BRANCH_NAME
+PATCHD=$TEST_DIR/patches
+
+# NOW, hook on. cleanup.. we are about to start doing serious stuff.
+trap on_exit EXIT SIGINT SIGTERM
+
+mkdir -p $TEST_DIR $PATCHD
+cp .config $TEST_DIR/.config
+
+# First create a list of patches to test..
+if [ -n "$TEST_TOP" ]; then
+	git format-patch -M -o $PATCHD -1 >/dev/null
+	git checkout -b $TEST_BRANCH_NAME
+	git reset --hard HEAD^
+fi
+
+if [ -n "$PATCHES" ]; then
+	cp -rf $PATCHES $PATCHD
+	git checkout -b $TEST_BRANCH_NAME
+fi
+
+if [ -n "$TEST_BRANCH" ]; then
+	git format-patch -M -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
+	PATCHES=`realpath $PATCHD/*.patch|grep -v "cover-letter.patch$"`
+	PATCHCOUNT=`ls $PATCHES|wc -l`
+	if [ $PATCHCOUNT -eq 0 ]; then
+		usage "$BASE_BRANCH..$TEST_BRANCH generated no patches!"
+		exit 4;
+	fi
+	git branch $TEST_BRANCH_NAME $BASE_BRANCH >/dev/null
+	git checkout $TEST_BRANCH_NAME
+fi
+
+if [ -e "$LOG_FILE" ]; then
+	echo "$LOG_FILE exists, taking a backup"
+	mv $LOG_FILE $LOG_FILE.bak
+fi
+START_DATE=`date`
+START_SEC=`date "+%s"`
+
+#=========== MAIN TEST TRIGGER LOOP =========
+tests_start
+
+PATCHES=`realpath $PATCHD/*.patch|grep -v "cover-letter.patch$"`
+PATCHCOUNT=`ls $PATCHES|wc -l`
+PATCH_NUM=1
+for patch in $PATCHES
+do
+	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT): $patch"
+	test_patch $patch
+	report_patch $patch
+done
+
+tests_end
+report_tests_end
+report_end
+
+#=========== COMPLETE - let the cleanup handler clean things =========
+exit 0
