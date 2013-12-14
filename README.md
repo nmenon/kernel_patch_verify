@@ -9,9 +9,9 @@ Background and Motivation:
 This script came about as a result of various beatings I recieved and saw others
 recieve in upstream kernel discussions over the last several years.
 Did you run 'checkpatch.pl --strict', did you run sparse, is your patch series
-bisectable, did you run sparse? or the newer ones - coccinelle, smatch. I mean,
-why debug or even catch these in mailing lists, if you are programmatically try
-to catch them up at developer end?
+bisectable, or the newer ones - coccinelle, smatch. I mean, why debug or even
+catch these in mailing lists, if you are programmatically try to catch them up
+at developer's end?
 
 Many of these were due to:
 + Too many tools constantly evolving in linux kernel - too many goodies, and
@@ -19,8 +19,8 @@ too less time for every developer to learn
 + Having to run too many utilities using varied command lines - most normal
 folks dont remember everything everytime.
 + In general, few developers are lazy, even knowing tools are not good enough
-and almost everyone would like to have something quick and handy.. and if possible
-automated..
+and almost everyone would like to have something quick and handy.. and if
+possible, automated..
 
 As a result, while working on "evil vendor" Android kernel as a domain
 maintainer, I had originally written a dumb application called Kmake
@@ -147,10 +147,20 @@ log is a consolidation of every single patch, over all results and also provides
 information about the tools and versions used.
 
 '-C' tests are reserved for ones that take time. I would like to encourage
-developers to constantly use the test script to keep their code clean, so with '-C',
-it tries to run tests that take a short amount of time. For patches that take
-significant time, I'd hide it under '-C'. I recommend reading the code to see
-the list of tests executed - This will also be printed as you execute the tests.
+developers to constantly use the test script to keep their code clean,
+so without the '-C', it tries to run tests that take a short amount of time.
+For patches that take significant time, I'd list them under '-C'. I recommend
+reading the code to see the list of tests executed - This will also be printed
+as you execute the tests. just remember that false positives are irritable to
+developers, so be careful of the results.
+
+The generic strategy for the test is that everything in stderr is logged, a test
+should never throw anything on stdout as it just craps up the developer's screen.
+If a test provides result on stdout, redirect it to stderr. Pass/fail criteria is
+as follows:
+* for ftest_, btest_, the before and after logs should show 0 diff. if there are
+  it assumes new fail introduction
+* for ptest, no output is a pass, any output tends to be a fail.
 
 
 Author and versioning highlights (chronological):
