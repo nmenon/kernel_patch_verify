@@ -196,6 +196,7 @@ tests_end() {
 
 report_tests_end() {
 	log_marker "::Complete test results START::"
+	echo -en "\nGeneral Tests: ">>$LOG_SUMMARY_FILE
 	report_tests $TESTS_ALL_SET
 	log_marker "::Complete test results END::"
 }
@@ -251,9 +252,12 @@ test_patch() {
 }
 
 report_patch() {
-	log_marker "::test results START $1::"
+	Subject=`grep "^Subject" $1`
+	log_marker "::test results START " `basename $1` "::"
+	log_me "Subject: $Subject"
+	echo -en "\n"`basename $1` "Tests: ">>$LOG_SUMMARY_FILE
 	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET
-	log_marker "::test results END $1::"
+	log_marker "::test results END" `basename $1` "::"
 }
 
 ###################
@@ -302,6 +306,10 @@ log_me() {
 	echo "$*">>$LOG_FILE
 }
 
+logs_me() {
+	echo  -e "$*">>$LOG_SUMMARY_FILE
+}
+
 report_tests() {
 	TESTS=$*
 	PASS=1
@@ -314,6 +322,8 @@ report_tests() {
 			diff -purN  $start_log $end_log > $diff_log
 		fi
 	done
+	FAIL_TEST=""
+	PASS_TEST=""
 	for test in $TESTS
 	do
 		diff_log=$TEST_DIR/$test-diff
@@ -322,6 +332,9 @@ report_tests() {
 			if [ $size -ne 0 ]; then
 				log_me "$test FAILED?"
 				PASS=0
+				FAIL_TEST="$FAIL_TEST $test"
+			else
+				PASS_TEST="$PASS_TEST $test"
 			fi
 		fi
 	done
@@ -340,6 +353,13 @@ report_tests() {
 			fi
 		done
 	fi
+	if [ -z "$FAIL_TEST" ]; then
+		logs_me "Passed(ALL)"
+	else
+		logs_me "Failed"
+		logs_me "\tFail tests: $FAIL_TEST"
+	fi
+
 }
 
 report_end() {
@@ -358,6 +378,11 @@ report_end() {
 	END_SEC=`date "+%s"`
 	DELTA=`expr $END_SEC - $START_SEC`
 	log_marker "Test duration: $DELTA seconds (Started $START_DATE, ended $END_DATE)"
+	if [ -f "$LOG_SUMMARY_FILE" ]; then
+		echo "***************** DETAILED RESULTS *********">>$LOG_SUMMARY_FILE
+		cat "$LOG_FILE">>$LOG_SUMMARY_FILE
+		mv $LOG_SUMMARY_FILE $LOG_FILE
+	fi
 }
 
 ###################
@@ -563,6 +588,7 @@ fi
 TEST_BRANCH_NAME=kernel-patch-verify.$RANDOM
 TEST_DIR=$TEST_B_DIR/$TEST_BRANCH_NAME
 PATCHD=$TEST_DIR/patches
+LOG_SUMMARY_FILE=$TEST_DIR/summary
 
 # NOW, hook on. cleanup.. we are about to start doing serious stuff.
 trap on_exit EXIT SIGINT SIGTERM
