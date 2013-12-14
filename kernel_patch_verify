@@ -638,6 +638,7 @@ do
 	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT): $patch"
 	test_patch $patch
 	report_patch $patch
+	PATCH_NUM=`expr $PATCH_NUM + 1`
 done
 
 tests_end
