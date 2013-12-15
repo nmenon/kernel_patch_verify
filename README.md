@@ -10,7 +10,7 @@ This script came about as a result of various beatings I recieved and saw others
 recieve in upstream kernel discussions over the last several years.
 Did you run 'checkpatch.pl --strict', did you run sparse, is your patch series
 bisectable, or the newer ones - coccinelle, smatch. I mean, why debug or even
-catch these in mailing lists, if you are programmatically try to catch them up
+catch these in mailing lists, if you can programmatically try to catch them up
 at developer's end?
 
 Many of these were due to:
