@@ -36,6 +36,8 @@ DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
+COVER_LETTER="cover-letter.[patch\|diff]$"
+
 kmake_single() {
 	make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j1 $*
 }
@@ -502,7 +504,7 @@ while getopts "j: c:T:l:p:b:t:1Cd" opt; do
 			usage "Patch Directory $PATCH_DIR does not exist?"
 			exit 1;
 		fi
-		PATCHES=`ls $PATCH_DIR/*.patch|grep -v "cover-letter.patch$"|xargs realpath`
+		PATCHES=`ls $PATCH_DIR/*.patch|grep -v "$COVER_LETTER"|xargs realpath`
 		PATCHCOUNT=`ls $PATCHES|wc -l`
 		if [ $PATCHCOUNT -eq 0 ]; then
 			usage "Patch directory $PATCH_DIR has no patches?"
@@ -614,7 +616,7 @@ fi
 
 if [ -n "$TEST_BRANCH" ]; then
 	git format-patch -M -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
-	PATCHES=`realpath $PATCHD/*.patch|grep -v "cover-letter.patch$"`
+	PATCHES=`realpath $PATCHD/*.patch|grep -v "$COVER_LETTER"`
 	PATCHCOUNT=`ls $PATCHES|wc -l`
 	if [ $PATCHCOUNT -eq 0 ]; then
 		usage "$BASE_BRANCH..$TEST_BRANCH generated no patches!"
@@ -634,7 +636,7 @@ START_SEC=`date "+%s"`
 #=========== MAIN TEST TRIGGER LOOP =========
 tests_start
 
-PATCHES=`realpath $PATCHD/*.patch|grep -v "cover-letter.patch$"`
+PATCHES=`realpath $PATCHD/*.patch|grep -v "$COVER_LETTER"`
 PATCHCOUNT=`ls $PATCHES|wc -l`
 PATCH_NUM=1
 EST_TOTAL="unknown"
