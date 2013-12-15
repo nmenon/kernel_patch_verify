@@ -633,11 +633,20 @@ tests_start
 PATCHES=`realpath $PATCHD/*.patch|grep -v "cover-letter.patch$"`
 PATCHCOUNT=`ls $PATCHES|wc -l`
 PATCH_NUM=1
+EST_TOTAL="unknown"
+ETA_REMAIN="unknown"
+DELTAP="unknown"
+STARTP_SEC=`date "+%s"`
 for patch in $PATCHES
 do
-	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" `basename $patch`
+	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" `basename $patch` "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL"
 	test_patch $patch
 	report_patch $patch
+	NOW_SEC=`date "+%s"`
+	DELTAP=`expr $NOW_SEC - $STARTP_SEC`
+	AVG=`expr $DELTAP / $PATCH_NUM`
+	EST_TOTAL=`expr $AVG \* PATCHCOUNT`
+	ETA_REMAIN=`expr $EST_REMAIN - $DELTAP`
 	PATCH_NUM=`expr $PATCH_NUM + 1`
 done
 
