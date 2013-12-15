@@ -207,7 +207,6 @@ test_patch() {
 	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
 
-	ptest_check $1
 	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
 	TESTS_B_SET="btest_basic btest_sparse"
 	TESTS_P_SET="ptest_am ptest_check"
