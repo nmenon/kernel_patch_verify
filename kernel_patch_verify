@@ -424,7 +424,7 @@ APP_NAME=$0
 usage() {
 	echo "$*" >&2
 	echo "Usage: $APP_NAME [-j CPUs] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]" >&2
-	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEFAULT_TMPDIR)" >&2
+	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
 	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
 	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
 	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2

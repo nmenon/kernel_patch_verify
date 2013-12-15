@@ -72,8 +72,8 @@ For -C 'complete tests', the following are needed:
 Usage:
 =====
 ```
-./kernel_patch_verify [-j CPUs] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b bas_branch [-t head_branch]]
-	-j CPUs: override default CPUs count with build (default is /tmp)
+./kernel_patch_verify [-j CPUs] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]
+	-j CPUs: override default CPUs count with build (default is "system dependent")
 	-T temp_dir_base: temporary directory base (default is /tmp)
 	-l logfile: report file (defaults to ./report-kernel-patch-verify.txt)
 	-C: run Complete tests(WARNING: could take significant time!)
