@@ -572,6 +572,10 @@ fi
 if [ -n "$BASE_BRANCH" -a -z "$TEST_BRANCH" ]; then
 	TEST_BRANCH=$CURRENT_BRANCH
 fi
+if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" == "$BASE_BRANCH" ]; then
+	usage "Test branch and base branch are the same '$TEST_BRANCH'.. Hmm.. not sleeping lately?"
+	exit 3
+fi
 
 # lets do some basic verification 
 gdiff=`git diff`
