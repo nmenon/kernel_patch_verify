@@ -74,6 +74,18 @@ run_test_dummy() {
 	touch $LOG_DIR/$TEST-$LOG_EXT
 }
 
+get_sorted_existing_files()
+{
+	test_files=""
+	for i in `ls -d $* | sort`
+	do
+		if [ -f "$i" ]; then
+			test_files="$test_files $i"
+		fi
+	done
+	echo $test_files
+}
+
 ###################
 # Basic tests to run on the patch itself
 ptest_am() {
@@ -87,53 +99,56 @@ ptest_check() {
 ###################
 # Basic tests to run on the files impacted by the patch
 ftest_check_kdoc() {
-	$KDIR/scripts/kernel-doc $* >/dev/null
+	test_files=`get_sorted_existing_files $*`
+
+	if [ -n "$test_files" ]; then
+		$KDIR/scripts/kernel-doc $test_files >/dev/null
+	fi
 }
+
 ftest_check_includes() {
-	$KDIR/scripts/checkincludes.pl $* 1>&2
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		$KDIR/scripts/checkincludes.pl $test_files 1>&2
+	fi
 }
 
 ftest_check_headerdeps() {
-	$KDIR/scripts/headerdep.pl $* 1>&2
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		$KDIR/scripts/headerdep.pl $test_files 1>&2
+	fi
 }
 
 ###################
 # Basic build test
 btest_basic() {
-	for i in $*
-	do
-		if [ -f "$i" ]; then
-			rm $i
-			kmake_single C=2 $i > /dev/null
-		fi
-	done
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		rm $test_files
+		kmake_single $test_files > /dev/null
+	fi
 }
 
 btest_sparse() {
-	for i in $*
-	do
-		if [ -f "$i" ]; then
-			kmake_single C=2 $i > /dev/null
-		fi
-	done
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		kmake_single C=2 $test_files > /dev/null
+	fi
 }
 
 btest_smatch() {
-	for i in $*
-	do
-		if [ -f "$i" ]; then
-			kmake_single CHECK="smatch -p=kernel" C=2 $i | egrep '(warn|error):' 1>&2
-		fi
-	done
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		kmake_single CHECK="smatch -p=kernel" C=2 $test_files | egrep '(warn|error):' 1>&2 
+	fi
 }
 
 btest_cocci() {
-	for i in $*
-	do
-		if [ -f "$i" ]; then
-			kmake_single C=2 CHECK="scripts/coccicheck" MODE=report $i >/dev/null
-		fi
-	done
+	test_files=`get_sorted_existing_files $*`
+	if [ -n "$test_files" ]; then
+		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report $test_files >/dev/null
+	fi
 }
 
 btest_stack() {
