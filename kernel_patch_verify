@@ -126,7 +126,7 @@ btest_basic() {
 	test_files=`get_sorted_existing_files $*`
 	if [ -n "$test_files" ]; then
 		rm $test_files
-		(((kmake_single $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) 1>&2
+		(((kmake_single $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$") 1>&2
 	fi
 }
 
@@ -140,7 +140,7 @@ btest_sparse() {
 btest_smatch() {
 	test_files=`get_sorted_existing_files $*`
 	if [ -n "$test_files" ]; then
-		kmake_single CHECK="smatch -p=kernel" C=2 $test_files | egrep '(warn|error):' 1>&2 
+		kmake_single CHECK="$SMATCH" C=2 $test_files | egrep '(warn|error):' 1>&2
 	fi
 }
 
@@ -678,6 +678,9 @@ trap on_exit EXIT SIGINT SIGTERM
 
 mkdir -p $TEST_DIR $PATCHD
 cp .config $TEST_DIR/.config 2>/dev/null
+SMATCH=$TEST_DIR/smatch
+echo -e '#!/bin/bash\nsmatch -p=kernel $@'> $SMATCH
+chmod +x $SMATCH
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
