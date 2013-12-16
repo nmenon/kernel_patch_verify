@@ -77,7 +77,7 @@ run_test_dummy() {
 get_sorted_existing_files()
 {
 	test_files=""
-	for i in `ls -d $* | sort`
+	for i in `ls -d $* | sort 2>/dev/null`
 	do
 		if [ -f "$i" ]; then
 			test_files="$test_files $i"
@@ -594,6 +594,11 @@ if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" == "$BASE_BRANCH" ]; then
 	exit 3
 fi
 
+if [ ! -e ".config" -a -z "$DEFCONFIG" ]; then
+	usage "No default .config exists.."
+	exit 3
+fi
+
 # lets do some basic verification 
 gdiff=`git diff`
 if [ -n "$gdiff" ]; then
@@ -615,7 +620,7 @@ LOG_SUMMARY_FILE=$TEST_DIR/summary
 trap on_exit EXIT SIGINT SIGTERM
 
 mkdir -p $TEST_DIR $PATCHD
-cp .config $TEST_DIR/.config
+cp .config $TEST_DIR/.config 2>/dev/null
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
