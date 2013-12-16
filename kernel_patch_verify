@@ -60,7 +60,7 @@ run_test() {
 	eval $TEST $* 2>$LOG_DIR/$TEST-$LOG_EXT
 	ESEC=`date "+%s"`
 	DELTA=`expr $ESEC - $SSEC`
-	echo "took $DELTA seconds"
+	echo "$DELTA seconds: completed $TEST"
 }
 
 run_test_dummy() {
@@ -193,12 +193,28 @@ tests_start() {
 	echo "Running start tests.."
 	TESTS_ALL_SET="defconfig"
 	if [ -n "$COMPLETE_TESTS" ]; then
-		TESTS_ALL_SET="$TESTS_ALL_SET build_all btest_stack btest_namespace btest_include btest_headers_check"
+		TESTS_ALL_SET="build_all"
+		TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
 	fi
 	for test_s in $TESTS_ALL_SET
 	do
 		run_test start $TEST_DIR $test_s
 	done
+
+	# Run parallel tests
+	PIDS=""
+	for test_s in $TESTS_ALL1_SET
+	do
+		run_test start $TEST_DIR $test_s &
+		PIDS="$PIDS $!"
+	done
+	echo "Waiting for PIDs: $PIDS"
+	for pid in $PIDS
+	do
+		wait $pid
+	done
+	PIDS=""
+
 	if [ -n "$COMPLETE_TESTS" ]; then
 		build_all
 	fi
@@ -210,12 +226,26 @@ tests_end() {
 	do
 		run_test end $TEST_DIR $test_s
 	done
+
+	# Run parallel tests
+	PIDS=""
+	for test_s in $TESTS_ALL1_SET
+	do
+		run_test start $TEST_DIR $test_s &
+		PIDS="$PIDS $!"
+	done
+	echo "Waiting for PIDs: $PIDS"
+	for pid in $PIDS
+	do
+		wait $pid
+	done
+	PIDS=""
 }
 
 report_tests_end() {
 	log_marker "::Complete test results START::"
 	echo -en "\nGeneral Tests: ">>$LOG_SUMMARY_FILE
-	report_tests $TESTS_ALL_SET
+	report_tests $TESTS_ALL_SET $TESTS_ALL1_SET
 	log_marker "::Complete test results END::"
 }
 
@@ -224,27 +254,46 @@ test_patch() {
 	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
 
-	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
-	TESTS_B_SET="btest_basic btest_sparse"
+	# Run sequential tests
+	TESTS_B1_SET="btest_basic"
 	TESTS_P_SET="ptest_am ptest_check"
+	# Run the following in parallel
+	TESTS_B_SET="btest_sparse"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_B_SET="$TESTS_B_SET btest_cocci btest_smatch"
 	fi
+	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
 
 	run_test start $TEST_DIR defconfig
 	# run twice - we just want end build errors..
 	run_test start $TEST_DIR btest_kbuild $ofiles
 	run_test start $TEST_DIR btest_kbuild $ofiles
 
-	for test_s in $TESTS_B_SET
+	for test_s in $TESTS_B1_SET
 	do
 		run_test start $TEST_DIR $test_s $ofiles
 	done
 
+	PIDS=""
+	for test_s in $TESTS_B_SET
+	do
+		run_test start $TEST_DIR $test_s $ofiles &
+		PIDS="$PIDS $!"
+	done
+
 	for test_s in $TESTS_C_SET
 	do
-		run_test start $TEST_DIR $test_s $cfiles
+		run_test start $TEST_DIR $test_s $cfiles &
+		PIDS="$PIDS $!"
 	done
+
+	# wait for all to come back
+	echo Waiting for test PIDs: $PIDS
+	for pid in $PIDS
+	do
+		wait $pid
+	done
+	PIDS=""
 
 	for test_s in $TESTS_P_SET
 	do
@@ -257,15 +306,31 @@ test_patch() {
 	run_test end $TEST_DIR btest_kbuild $ofiles
 	run_test end $TEST_DIR btest_kbuild $ofiles
 
-	for test_s in $TESTS_B_SET
+	for test_s in $TESTS_B1_SET
 	do
 		run_test end $TEST_DIR $test_s $ofiles
 	done
 
+	PIDS=""
+	for test_s in $TESTS_B_SET
+	do
+		run_test end $TEST_DIR $test_s $ofiles &
+		PIDS="$PIDS $!"
+	done
+
 	for test_s in $TESTS_C_SET
 	do
-		run_test end $TEST_DIR $test_s $cfiles
+		run_test end $TEST_DIR $test_s $cfiles &
+		PIDS="$PIDS $!"
 	done
+
+	# wait for all to come back
+	echo Waiting for test PIDs: $PIDS
+	for pid in $PIDS
+	do
+		wait $pid
+	done
+	PIDS=""
 }
 
 report_patch() {
@@ -273,7 +338,7 @@ report_patch() {
 	log_marker "::test results START " `basename $1` "::"
 	log_me "Subject: $Subject"
 	echo -en "\n"`basename $1` "Tests: ">>$LOG_SUMMARY_FILE
-	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET
+	report_tests defconfig btest_kbuild $TESTS_C_SET $TEST_B1_SET $TESTS_B_SET $TESTS_P_SET
 	log_marker "::test results END" `basename $1` "::"
 }
 
@@ -281,6 +346,11 @@ report_patch() {
 # Cleanup handler
 on_exit() {
 	echo "Cleaning up..."
+
+	if [ x != x"$PIDS" ]; then
+		killall $PIDS 2>/dev/null
+	fi
+
 	if [ -n "$DEBUG_MODE" ]; then
 		return 0;
 	fi
