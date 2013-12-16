@@ -255,14 +255,12 @@ test_patch() {
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
 
 	# Run sequential tests
-	TESTS_B1_SET="btest_basic"
 	TESTS_P_SET="ptest_am ptest_check"
-	# Run the following in parallel
-	TESTS_B_SET="btest_sparse"
+	TESTS_B_SET="btest_basic btest_sparse"
 	if [ -n "$COMPLETE_TESTS" ]; then
-		TESTS_B_SET="$TESTS_B_SET btest_cocci"
-		TESTS_B1_SET="$TESTS_B1_SET btest_smatch"
+		TESTS_B_SET="$TESTS_B_SET btest_cocci btest_smatch"
 	fi
+	# Run the following in parallel
 	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
 
 	run_test start $TEST_DIR defconfig
@@ -270,18 +268,12 @@ test_patch() {
 	run_test start $TEST_DIR btest_kbuild $ofiles
 	run_test start $TEST_DIR btest_kbuild $ofiles
 
-	for test_s in $TESTS_B1_SET
+	for test_s in $TESTS_B_SET
 	do
 		run_test start $TEST_DIR $test_s $ofiles
 	done
 
 	PIDS=""
-	for test_s in $TESTS_B_SET
-	do
-		run_test start $TEST_DIR $test_s $ofiles &
-		PIDS="$PIDS $!"
-	done
-
 	for test_s in $TESTS_C_SET
 	do
 		run_test start $TEST_DIR $test_s $cfiles &
@@ -307,18 +299,12 @@ test_patch() {
 	run_test end $TEST_DIR btest_kbuild $ofiles
 	run_test end $TEST_DIR btest_kbuild $ofiles
 
-	for test_s in $TESTS_B1_SET
+	for test_s in $TESTS_B_SET
 	do
 		run_test end $TEST_DIR $test_s $ofiles
 	done
 
 	PIDS=""
-	for test_s in $TESTS_B_SET
-	do
-		run_test end $TEST_DIR $test_s $ofiles &
-		PIDS="$PIDS $!"
-	done
-
 	for test_s in $TESTS_C_SET
 	do
 		run_test end $TEST_DIR $test_s $cfiles &
@@ -339,7 +325,7 @@ report_patch() {
 	log_marker "::test results START " `basename $1` "::"
 	log_me "Subject: $Subject"
 	echo -en "\n"`basename $1` "Tests: ">>$LOG_SUMMARY_FILE
-	report_tests defconfig btest_kbuild $TESTS_C_SET $TEST_B1_SET $TESTS_B_SET $TESTS_P_SET
+	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET
 	log_marker "::test results END" `basename $1` "::"
 }
 
