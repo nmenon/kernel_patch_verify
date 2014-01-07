@@ -196,11 +196,13 @@ tests_start() {
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
 	fi
+	echo "Sequential tests to run: $TESTS_ALL_SET"
+	echo "Parallel tests to run: $TESTS_ALL1_SET"
+
 	for test_s in $TESTS_ALL_SET
 	do
 		run_test start $TEST_DIR $test_s
 	done
-
 	# Run parallel tests
 	PIDS=""
 	for test_s in $TESTS_ALL1_SET
@@ -262,6 +264,10 @@ test_patch() {
 	fi
 	# Run the following in parallel
 	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
+
+	echo "Tests to run on C files(parallel): $TESTS_C_SET"
+	echo "Tests to run on Patch: $TESTS_P_SET"
+	echo "Tests to run on Build: $TESTS_B_SET"
 
 	run_test start $TEST_DIR defconfig
 	# run twice - we just want end build errors..
@@ -335,6 +341,7 @@ on_exit() {
 	echo "Cleaning up..."
 
 	if [ x != x"$PIDS" ]; then
+		echo "Killing $PIDS"
 		killall $PIDS 2>/dev/null
 	fi
 
