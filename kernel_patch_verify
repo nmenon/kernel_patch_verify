@@ -133,7 +133,7 @@ btest_basic() {
 btest_sparse() {
 	test_files=`get_sorted_existing_files $*`
 	if [ -n "$test_files" ]; then
-		(((kmake_single C=2 $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) |grep -v "^mv$" |grep -v "^make$"1>&2
+		(((kmake_single C=2 $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) |grep -v "^mv$" |grep -v "^make$" | grep -v "__ksymtab" 1>&2
 	fi
 }
 
