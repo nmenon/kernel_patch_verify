@@ -193,7 +193,7 @@ tests_start() {
 	echo "Running start tests.."
 	TESTS_ALL_SET="defconfig"
 	if [ -n "$COMPLETE_TESTS" ]; then
-		TESTS_ALL_SET="build_all"
+		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
 	fi
 	for test_s in $TESTS_ALL_SET
