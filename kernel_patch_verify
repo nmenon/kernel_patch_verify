@@ -529,7 +529,7 @@ usage() {
 	fi
 }
 
-while getopts "j: c:T:l:p:b:t:1Cd" opt; do
+while getopts "j:c:T:l:p:b:t:1Cd" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
