@@ -72,8 +72,10 @@ For -C 'complete tests', the following are needed:
 Usage:
 =====
 ```
-./kernel_patch_verify [-j CPUs] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]
-	-j CPUs: override default CPUs count with build (default is "system dependent")
+./kernel_patch_verify [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]
+	-d: if not already defined, use CROSS_COMPILE=arm-linux-gnueabi-, ARCH=arm, and builds for ' zImage dtbs' build targets
+	-j CPUs: override default CPUs count with build (default is 4)
+	-B build_target: override default build target and use provided build_target
 	-T temp_dir_base: temporary directory base (default is /tmp)
 	-l logfile: report file (defaults to ./report-kernel-patch-verify.txt)
 	-C: run Complete tests(WARNING: could take significant time!)
@@ -82,6 +84,7 @@ Usage:
 	-p patch_dir: which directory to take patches from (expects sorted in order)
 	-b base_branch: test patches from base_branch
 	-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch
+
 ```
 
 NOTE:
@@ -125,6 +128,14 @@ Example usages:
 	 ./kernel_patch_verify -b base_branch -t test_branch -C
 ```
 
+* Verify last committed patch on a native x86 build using make, gcc and bzImage
+```
+	 ./kernel_patch_verify -B bzImage -1
+```
+* Verify last committed patch on a cross_compiled ARM build using defaults
+```
+	 ./kernel_patch_verify -d -1
+```
 Some script design stuff:
 ========================
 Alright, the shell script should be readable in it's own I hope.. anyways,
