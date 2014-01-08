@@ -129,13 +129,17 @@ Example usages:
 ```
 
 * Verify last committed patch on a native x86 build using make, gcc and bzImage
+
 ```
 	 ./kernel_patch_verify -B bzImage -1
 ```
+
 * Verify last committed patch on a cross_compiled ARM build using defaults
+
 ```
 	 ./kernel_patch_verify -d -1
 ```
+
 Some script design stuff:
 ========================
 Alright, the shell script should be readable in it's own I hope.. anyways,
