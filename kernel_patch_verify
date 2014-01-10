@@ -698,7 +698,7 @@ if [ -n "$gdiff" ]; then
 	exit 3
 fi
 
-if [ "$CURRENT_BRANCH" = "(no branch)" ]; then
+if [ "$CURRENT_BRANCH" = "(no" ]; then
 	usage "You are currently on a dangling branch - please checkout a branch to proceed"
 	exit 3
 fi
