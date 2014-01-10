@@ -67,6 +67,8 @@ For -C 'complete tests', the following are needed:
 
 	http://smatch.sf.net
 
+	NOTE for older ubuntu installs, use: https://launchpad.net/ubuntu/+source/coccinelle
+
 - spatch: is provided by the coccinelle package in ubuntu
 
 Usage:
