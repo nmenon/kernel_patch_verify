@@ -22,7 +22,7 @@
 # spatch is provided by the coccinelle package in ubuntu
 
 DEF_ARCH=arm
-DEF_CROSS_COMPILE=arm-linux-gnueabi-
+DEF_CROSS_COMPILE=arm-linux-gnueabihf-
 DEF_BUILDTARGETS="zImage dtbs"
 
 # Default parameters
@@ -719,7 +719,7 @@ chmod +x $SMATCH
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
-	git format-patch -M -o $PATCHD -1 >/dev/null
+	git format-patch -M -C -o $PATCHD -1 >/dev/null
 	git checkout -b $TEST_BRANCH_NAME
 	git reset --hard HEAD^
 fi
@@ -730,7 +730,7 @@ if [ -n "$PATCHES" ]; then
 fi
 
 if [ -n "$TEST_BRANCH" ]; then
-	git format-patch -M -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
+	git format-patch -M -C -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
 	PATCHES=`realpath $PATCHD/*.patch|grep -v "$COVER_LETTER"`
 	PATCHCOUNT=`ls $PATCHES|wc -l`
 	if [ $PATCHCOUNT -eq 0 ]; then
