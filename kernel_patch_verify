@@ -769,7 +769,7 @@ DELTAP="unknown"
 STARTP_SEC=`date "+%s"`
 for patch in $PATCHES
 do
-	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" `basename $patch` "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL"
+	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" `basename $patch` "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL seconds"
 	test_patch $patch
 	report_patch $patch
 	NOW_SEC=`date "+%s"`
