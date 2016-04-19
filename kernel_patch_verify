@@ -469,6 +469,7 @@ report_end() {
 		cat "$LOG_FILE">>$LOG_SUMMARY_FILE
 		mv $LOG_SUMMARY_FILE $LOG_FILE
 	fi
+	echo -e "Final report is available here: \e[92m\e[41m\e[5m$LOG_FILE\e[0m\e[5m"
 }
 
 ###################
