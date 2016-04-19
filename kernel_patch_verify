@@ -343,7 +343,7 @@ report_patch() {
 ###################
 # Cleanup handler
 on_exit() {
-	echo "Cleaning up..."
+	echo -e "\e[0mCleaning up..."
 
 	if [ x != x"$PIDS" ]; then
 		echo "Killing $PIDS"
@@ -465,11 +465,27 @@ report_end() {
 	DELTA=`expr $END_SEC - $START_SEC`
 	log_marker "Test duration: $DELTA seconds (Started $START_DATE, ended $END_DATE)"
 	if [ -f "$LOG_SUMMARY_FILE" ]; then
+		echo -e "\e[106m\e[4m\e[1mTest Summary:\e[0m"
+		while read ln
+		do
+			empty=`echo $ln |wc -c`
+			# Colored reporting to ensure people dont miss errors
+			if [ $empty -gt 2 ]; then
+				pass=`echo $ln|grep "Passed(ALL)"`
+				if [ -z "$pass" ]; then
+					# Red http://misc.flogisoft.com/bash/tip_colors_and_formatting
+					echo -e "\e[1m\e[97m\e[101m$ln\e[0m"
+				else
+					# Green back, white foreground
+					echo -e "\e[1m\e[97m\e[102m$ln\e[0m"
+				fi
+			fi
+		done <$LOG_SUMMARY_FILE
 		echo "***************** DETAILED RESULTS *********">>$LOG_SUMMARY_FILE
 		cat "$LOG_FILE">>$LOG_SUMMARY_FILE
 		mv $LOG_SUMMARY_FILE $LOG_FILE
+		echo -e "\e[96m\e[40mComplete report is available here: \e[92m\e[41m\e[5m$LOG_FILE\e[0m"
 	fi
-	echo -e "Final report is available here: \e[92m\e[41m\e[5m$LOG_FILE\e[0m\e[5m"
 }
 
 ###################
