@@ -466,15 +466,18 @@ report_end() {
 	log_marker "Test duration: $DELTA seconds (Started $START_DATE, ended $END_DATE)"
 	if [ -f "$LOG_SUMMARY_FILE" ]; then
 		echo -e "\e[106m\e[4m\e[1mTest Summary:\e[0m"
+		fail=0
 		while read ln
 		do
 			empty=`echo $ln |wc -c`
 			# Colored reporting to ensure people dont miss errors
+			# See http://misc.flogisoft.com/bash/tip_colors_and_formatting
 			if [ $empty -gt 2 ]; then
 				pass=`echo $ln|grep "Passed(ALL)"`
 				if [ -z "$pass" ]; then
-					# Red http://misc.flogisoft.com/bash/tip_colors_and_formatting
+					# Red back, white foreground
 					echo -e "\e[1m\e[97m\e[101m$ln\e[0m"
+					fail=1
 				else
 					# Green back, white foreground
 					echo -e "\e[1m\e[97m\e[102m$ln\e[0m"
@@ -484,7 +487,12 @@ report_end() {
 		echo "***************** DETAILED RESULTS *********">>$LOG_SUMMARY_FILE
 		cat "$LOG_FILE">>$LOG_SUMMARY_FILE
 		mv $LOG_SUMMARY_FILE $LOG_FILE
-		echo -e "\e[96m\e[40mComplete report is available here: \e[92m\e[41m\e[5m$LOG_FILE\e[0m"
+		echo -ne "\e[96m\e[40mComplete report is available here: "
+		if [ $fail -eq 1 ]; then
+			echo -e "\e[92m\e[41m\e[5m$LOG_FILE\e[0m"
+		else
+			echo -e "\e[97m\e[42m\e[5m$LOG_FILE\e[0m"
+		fi
 	fi
 }
 
