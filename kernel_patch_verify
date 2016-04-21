@@ -35,6 +35,7 @@ DEFAULT_TMPDIR="/tmp"
 
 COVER_LETTER="cover-letter.[patch\|diff]$"
 
+UBOOT_TESTING=0
 # We will add to this later.. but allow user to provide his own choice of stuff
 if [ -z "$KP_PARAMS" ]; then
 	KP_PARAMS=""
@@ -98,7 +99,7 @@ ptest_am() {
 }
 
 ptest_check() {
-	($KDIR/scripts/checkpatch.pl --strict $1 |grep -v `basename $1`|grep -v "^$"|grep -v "^total")1>&2
+	($KDIR/scripts/checkpatch.pl --strict $1 |grep -v `basename $1`|grep -v "^$"|grep -v "^total"|grep -v "^NOTE:")1>&2
 }
 
 ###################
@@ -199,7 +200,9 @@ tests_start() {
 	TESTS_ALL_SET="defconfig"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
-		TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
+		if [ $UBOOT_TESTING -eq 0 ]; then
+			TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
+		fi
 	fi
 	echo "Sequential tests to run: $TESTS_ALL_SET"
 	echo "Parallel tests to run: $TESTS_ALL1_SET"
@@ -268,7 +271,10 @@ test_patch() {
 		TESTS_B_SET="$TESTS_B_SET btest_cocci btest_smatch"
 	fi
 	# Run the following in parallel
-	TESTS_C_SET="ftest_check_kdoc ftest_check_includes ftest_check_headerdeps"
+	TESTS_C_SET="ftest_check_kdoc"
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		TESTS_C_SET="$TESTS_C_SET ftest_check_includes ftest_check_headerdeps"
+	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
@@ -534,7 +540,7 @@ APP_NAME=$0
 # Help
 usage() {
 	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]]" >&2
+	echo "Usage: $APP_NAME [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U" >&2
 	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
 	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
 	echo -e "\t-B build_target: override default build target and use provided build_target" >&2
@@ -547,6 +553,7 @@ usage() {
 	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
 	echo -e "\t-b base_branch: test patches from base_branch" >&2
 	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
+	echo -e "\t-U : Do u-boot basic sanity tests" >&2
 	echo >&2
 	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
 	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
@@ -577,7 +584,7 @@ usage() {
 }
 
 ORIDE=0
-while getopts "n:j:c:T:B:l:p:b:t:123456789CdD" opt; do
+while getopts "n:j:c:T:B:l:p:b:t:123456789CdDU" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
@@ -596,6 +603,17 @@ while getopts "n:j:c:T:B:l:p:b:t:123456789CdD" opt; do
 		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_BUILDTARGETS"
 		fi
+	;;
+	U)
+		DEF_BUILDTARGETS=""
+		if [ -n "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+			export KP_TARGETS=""
+		fi
+		if [ -n "$COMPLETE_TESTS" ]; then
+			usage "Cannot run complete tests yet on u-boot"
+			exit 1
+		fi
+		UBOOT_TESTING=1
 	;;
 	D)
 		DEBUG_MODE=1
@@ -621,6 +639,10 @@ while getopts "n:j:c:T:B:l:p:b:t:123456789CdD" opt; do
 		COMPLETE_TESTS=1
 		APPS_NEEDED="$APPS_NEEDED smatch spatch"
 		MODULES=modules
+		if [ "$UBOOT_TESTING" -eq 1 ]; then
+			usage "Cannot run complete tests yet on u-boot"
+			exit 1
+		fi
 	;;
 	[1-9])
 		TEST_TOP=yes
