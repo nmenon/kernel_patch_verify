@@ -174,7 +174,13 @@ btest_headers_check() {
 }
 
 btest_kbuild() {
-	kmake C=1 $KP_TARGETS $MODULES>/dev/null
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		kmake C=1 $KP_TARGETS $MODULES>/dev/null
+	else
+		kmake C=1 $KP_TARGETS $MODULES>/dev/null 2>$TEST_DIR/err_stuff
+		# Get rid of standard sparse mess with u-boot
+		cat $TEST_DIR/err_stuff|grep -v "efi.h"|grep -v "version.c" |grep -v "_u_boot_list_" 1>&2
+	fi
 }
 
 defconfig() {
