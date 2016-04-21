@@ -534,7 +534,7 @@ APP_NAME=$0
 # Help
 usage() {
 	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]" >&2
+	echo "Usage: $APP_NAME [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]]" >&2
 	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
 	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
 	echo -e "\t-B build_target: override default build target and use provided build_target" >&2
@@ -542,7 +542,7 @@ usage() {
 	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
 	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
 	echo -e "\t-c defconfig:_name (default uses current .config + oldconfig)" >&2
-	echo -e "\t-1: test the tip of current branch (just a single patch)" >&2
+	echo -e "\t-[1..9]: test the tip of current branch (1 to 9 number of patches)" >&2
 	echo -e "\t-n N: test the tip of current branch with 'N' number of patches" >&2
 	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
 	echo -e "\t-b base_branch: test patches from base_branch" >&2
@@ -577,7 +577,7 @@ usage() {
 }
 
 ORIDE=0
-while getopts "n:j:c:T:B:l:p:b:t:1CdD" opt; do
+while getopts "n:j:c:T:B:l:p:b:t:123456789CdD" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
@@ -622,13 +622,13 @@ while getopts "n:j:c:T:B:l:p:b:t:1CdD" opt; do
 		APPS_NEEDED="$APPS_NEEDED smatch spatch"
 		MODULES=modules
 	;;
-	1)
+	[1-9])
 		TEST_TOP=yes
 		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
-			usage "cannot use -1 with other options"
+			usage "cannot use -$opt with other options"
 			exit 1;
 		fi
-		PATCHCOUNT=1
+		PATCHCOUNT=$opt
 	;;
 	n)
 		TEST_TOP=yes
