@@ -35,6 +35,8 @@ DEFAULT_TMPDIR="/tmp"
 
 COVER_LETTER="cover-letter.[patch\|diff]$"
 
+LINE_LENGTH=80
+
 UBOOT_TESTING=0
 # We will add to this later.. but allow user to provide his own choice of stuff
 if [ -z "$KP_PARAMS" ]; then
@@ -99,7 +101,7 @@ ptest_am() {
 }
 
 ptest_check() {
-	($KDIR/scripts/checkpatch.pl --strict $1 |grep -v `basename $1`|grep -v "^$"|grep -v "^total"|grep -v "^NOTE:")1>&2
+	($KDIR/scripts/checkpatch.pl --strict $1 --max-line-length=$LINE_LENGTH |grep -v `basename $1`|grep -v "^$"|grep -v "^total"|grep -v "^NOTE:")1>&2
 }
 
 ###################
@@ -560,6 +562,7 @@ usage() {
 	echo -e "\t-b base_branch: test patches from base_branch" >&2
 	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
 	echo -e "\t-U : Do u-boot basic sanity tests" >&2
+	echo -e "\t-m : maximum line length number to be passed on to checkpatch.pl" >&2
 	echo >&2
 	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
 	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
@@ -590,7 +593,7 @@ usage() {
 }
 
 ORIDE=0
-while getopts "n:j:c:T:B:l:p:b:t:123456789CdDU" opt; do
+while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDU" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
@@ -705,6 +708,9 @@ while getopts "n:j:c:T:B:l:p:b:t:123456789CdDU" opt; do
 			usage "Test branch $TEST_BRANCH does not exist?"
 			exit 1
 		fi
+	;;
+	m)
+		LINE_LENGTH=$OPTARG
 	;;
 	\?)
 		usage "Invalid option: -$OPTARG"
