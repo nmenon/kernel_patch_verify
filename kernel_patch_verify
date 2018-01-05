@@ -662,6 +662,7 @@ while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUV" opt; do
 	;;
 	C)
 		COMPLETE_TESTS=1
+		KP_PARAMS="$KP_PARAMS W=12 EXTRA_CFLAGS=-W"
 		APPS_NEEDED="$APPS_NEEDED smatch spatch"
 		MODULES=modules
 		if [ "$UBOOT_TESTING" -eq 1 ]; then
