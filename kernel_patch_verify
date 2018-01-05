@@ -25,6 +25,10 @@ DEF_ARCH=arm
 DEF_CROSS_COMPILE=arm-linux-gnueabihf-
 DEF_BUILDTARGETS="zImage dtbs"
 
+DEF_V8_ARCH=arm64
+DEF_V8_CROSS_COMPILE=aarch64-linux-gnu-
+DEF_V8_BUILDTARGETS="Image dtbs"
+
 # Default parameters
 APPS_NEEDED="perl make ${CROSS_COMPILE}gcc sparse patch git realpath basename" 
 
@@ -440,7 +444,7 @@ report_tests() {
 	done
 	if [ $PASS -eq 1 ]; then
 		log_me Passed: $TESTS
-	else 
+	else
 		for test in $TESTS
 		do
 			diff_log=$TEST_DIR/$test-diff
@@ -548,8 +552,9 @@ APP_NAME=$0
 # Help
 usage() {
 	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U" >&2
+	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U" >&2
 	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
+	echo -e "\t-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" >&2
 	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
 	echo -e "\t-B build_target: override default build target and use provided build_target" >&2
 	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
@@ -593,7 +598,7 @@ usage() {
 }
 
 ORIDE=0
-while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDU" opt; do
+while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUV" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
@@ -611,6 +616,17 @@ while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDU" opt; do
 		fi
 		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_BUILDTARGETS"
+		fi
+	;;
+	V)
+		if [ -z "$CROSS_COMPILE" ]; then
+			export CROSS_COMPILE=$DEF_V8_CROSS_COMPILE
+		fi
+		if [ -z "$ARCH" ]; then
+			export ARCH=$DEF_V8_ARCH
+		fi
+		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+			export KP_TARGETS="$KP_TARGETS $DEF_V8_BUILDTARGETS"
 		fi
 	;;
 	U)
