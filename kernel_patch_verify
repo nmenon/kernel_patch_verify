@@ -194,7 +194,7 @@ defconfig() {
 		kmake $DEFCONFIG >/dev/null
 	else
 		cp $TEST_DIR/.config .config
-		kmake oldconfig >/dev/null
+		kmake olddefconfig >/dev/null
 	fi
 }
 
@@ -560,7 +560,7 @@ usage() {
 	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
 	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
 	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
-	echo -e "\t-c defconfig:_name (default uses current .config + oldconfig)" >&2
+	echo -e "\t-c defconfig:_name (default uses current .config + olddefconfig)" >&2
 	echo -e "\t-[1..9]: test the tip of current branch (1 to 9 number of patches)" >&2
 	echo -e "\t-n N: test the tip of current branch with 'N' number of patches" >&2
 	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
