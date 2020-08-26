@@ -71,6 +71,12 @@ For -C 'complete tests', the following are needed:
 
 - spatch: is provided by the coccinelle package in ubuntu
 
+:warning: **If your changes include dtb changes, then please optimize your .config, since dtbscheck will take significant time!**
+
+```
+for i in `cat arch/arm64/Kconfig.platforms |grep ARCH|grep "^config"|grep -v K3|cut -d ' ' -f2`; do echo "CONFIG_"$i"=n">>.config; done
+```
+
 Usage:
 =====
 ```

@@ -172,6 +172,18 @@ dtest_build_dtb() {
 	fi
 }
 
+dtest_dtbs_check() {
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		test_files=`get_sorted_existing_files $*`
+		for test_file in $test_files
+		do
+			D=`dirname $test_file`
+			rm -f $D/*.dtb
+		done
+		kmake_single W=2 dtbs_check > /dev/null
+	fi
+}
+
 ###################
 # Basic build test
 btest_basic() {
@@ -339,12 +351,13 @@ test_patch() {
 	TESTS_D_SET="dtest_build_dtb"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		# we need to introduce dtbs_check in a manner which does'nt take time..
-		TESTS_D_SET="$TESTS_D_SET"
+		TESTS_D_SET="$TESTS_D_SET dtest_dtbs_check"
+		DWARNING="(dtbs_check is enabled, HIGHLY RECOMMEND custom .config to save time)"
 	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
 	echo "Tests to run on yaml files(parallel): $TESTS_Y_SET"
-	echo "Tests to run on dtb files: $TESTS_D_SET"
+	echo "Tests to run on dtb files$DWARNING: $TESTS_D_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
 
