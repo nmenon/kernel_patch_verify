@@ -21,6 +21,7 @@ download_build_install_git()
 	aria2c $ARIA_OPTS -o "$FILE" "$URL"
 	mkdir /tmp/git
 	tar -C /tmp/git --strip-components=1 -xvf "$FILE"
+	rm $FILE
 	cd /tmp/git
 	make -j "$NPROC" prefix=/usr
 	make -j "$NPROC" prefix=/usr install
@@ -83,18 +84,20 @@ download_build_install_coccinelle()
 download_and_install_armgcc()
 {
 	cd /tmp
+	mkdir -p /opt/cross-gcc-linux-9/
 	#aarch64
 	F64='aarch64-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz?revision=61c3be5d-5175-4db6-9030-b565aae9f766&la=en&hash=0A37024B42028A9616F56A51C2D20755C5EBBCD7"
 	aria2c $ARIA_OPTS -o "$F64" "$URL"
+	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xvf "$F64"
+	rm -f "$F64"
+
 	#arch32
 	F32='aarch32-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
 	aria2c $ARIA_OPTS -o "$F32" "$URL"
-	mkdir -p /opt/cross-gcc-linux-9/
 	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xvf "$F32"
-	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xvf "$F64"
-	rm -f "$F32" "$F64"
+	rm -f "$F32"
 }
 
 download_build_install_git
