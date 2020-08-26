@@ -26,12 +26,13 @@
 source /etc/profile
 shopt -s expand_aliases
 
+ccache=`which ccache`
 DEF_ARCH=arm
-DEF_CROSS_COMPILE=arm-linux-gnueabihf-
+DEF_CROSS_COMPILE="$ccache arm-none-linux-gnueabihf-"
 DEF_BUILDTARGETS="zImage dtbs"
 
 DEF_V8_ARCH=arm64
-DEF_V8_CROSS_COMPILE=aarch64-linux-gnu-
+DEF_V8_CROSS_COMPILE="$ccache aarch64-none-linux-gnu-"
 DEF_V8_BUILDTARGETS="Image dtbs"
 
 # Default parameters
