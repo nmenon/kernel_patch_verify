@@ -21,6 +21,11 @@
 #  - http://smatch.sf.net
 # spatch is provided by the coccinelle package in ubuntu
 
+# if started by docker, it is usually a good idea to start ourselves up with right
+# env variables.
+source /etc/profile
+shopt -s expand_aliases
+
 DEF_ARCH=arm
 DEF_CROSS_COMPILE=arm-linux-gnueabihf-
 DEF_BUILDTARGETS="zImage dtbs"
