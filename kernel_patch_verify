@@ -615,10 +615,10 @@ while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUV" opt; do
 	;;
 	d)
 		if [ -z "$CROSS_COMPILE" ]; then
-			export CROSS_COMPILE=$DEF_CROSS_COMPILE
+			export CROSS_COMPILE="$DEF_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
-			export ARCH=$DEF_ARCH
+			export ARCH="$DEF_ARCH"
 		fi
 		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_BUILDTARGETS"
@@ -626,10 +626,10 @@ while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUV" opt; do
 	;;
 	V)
 		if [ -z "$CROSS_COMPILE" ]; then
-			export CROSS_COMPILE=$DEF_V8_CROSS_COMPILE
+			export CROSS_COMPILE="$DEF_V8_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
-			export ARCH=$DEF_V8_ARCH
+			export ARCH="$DEF_V8_ARCH"
 		fi
 		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_V8_BUILDTARGETS"
@@ -789,7 +789,7 @@ if [ ! -e ".config" -a -z "$DEFCONFIG" ]; then
 	exit 3
 fi
 
-# lets do some basic verification 
+# lets do some basic verification
 gdiff=`git diff`
 if [ -n "$gdiff" ]; then
 	usage "git diff returned data.. you may want to do git reset --hard or stash changes"
@@ -846,14 +846,6 @@ fi
 if [ -e "$LOG_FILE" ]; then
 	echo "$LOG_FILE exists, taking a backup"
 	mv $LOG_FILE $LOG_FILE.bak
-fi
-
-if [ -n "$ARCH" ]; then
-	KP_PARAMS="$KP_PARAMS ARCH=$ARCH"
-fi
-
-if [ -n "$CROSS_COMPILE" ]; then
-	KP_PARAMS="$KP_PARAMS CROSS_COMPILE=$CROSS_COMPILE"
 fi
 
 START_DATE=`date`
