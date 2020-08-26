@@ -1,0 +1,9 @@
+// Use when Providing Corporate proxy environment
+Acquire
+{
+  http {
+    Proxy "http://webproxy.ext.ti.com:80";
+    Proxy::artifactory.itg.ti.com "DIRECT";
+  }
+}
+

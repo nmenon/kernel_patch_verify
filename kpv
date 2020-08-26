@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Check if Docker image exists
+IMG_NAME=arm-kernel-dev
+
+# Check if docker exists
+docker=`which docker`
+if [ -z "$docker" ]; then
+	echo "Please install Docker and Image arm-kernel-dev from:" `dirname $0`
+	exit 1
+fi
+dimg=`docker image ls | grep arm-kernel-dev`
+if [ -z "$dimg" ]; then
+	echo "Please install Docker Image arm-kernel-dev from: cd" `dirname $0` ";make"
+	exit 1
+fi
+ccache=`which ccache`
+if [ -z "ccache" ]; then
+	if [ ! -d "/tmp/ccache" ]; then
+		mkdir /tmp/ccache
+	fi
+	CCACHEDIR=/tmp/ccache
+else
+	CCACHEDIR=`ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3`
+fi
+# If we wanted to get to bash shell:
+# docker run --rm -ti -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir arm-kernel-dev bash
+# but, lets just run the script
+docker run --rm -ti -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir arm-kernel-dev kernel_patch_verify $*
