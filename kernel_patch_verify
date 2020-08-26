@@ -27,6 +27,15 @@ source /etc/profile
 shopt -s expand_aliases
 
 ccache=`which ccache`
+
+# We would rather that we hit cache more often, than rebuild..
+# See https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3
+if [ -z "$KBUILD_BUILD_TIMESTAMP" ]; then
+	export KBUILD_BUILD_TIMESTAMP=''
+fi
+if [ -z "$KBUILD_BUILD_VERSION" ]; then
+	export KBUILD_BUILD_VERSION='kernel_patch_verify_build'
+fi
 DEF_ARCH=arm
 DEF_CROSS_COMPILE="$ccache arm-none-linux-gnueabihf-"
 DEF_BUILDTARGETS="zImage dtbs"
