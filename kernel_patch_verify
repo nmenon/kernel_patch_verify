@@ -452,7 +452,7 @@ report_patch() {
 	log_marker "::test results START " `basename $1` "::"
 	log_me "Subject: $Subject"
 	echo -en "\n"`basename $1` "Tests: ">>$LOG_SUMMARY_FILE
-	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET
+	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET $TESTS_Y_SET $TESTS_D_SET
 	log_marker "::test results END" `basename $1` "::"
 }
 
