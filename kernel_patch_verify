@@ -160,6 +160,18 @@ ytest_dt_binding_check() {
 	fi
 }
 
+dtest_build_dtb() {
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		test_files=`get_sorted_existing_files $*`
+		for test_file in $test_files
+		do
+			D=`dirname $test_file`
+			rm -f $D/*.dtb
+		done
+		kmake_single W=2 dtbs > /dev/null
+	fi
+}
+
 ###################
 # Basic build test
 btest_basic() {
@@ -304,6 +316,7 @@ test_patch() {
 	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
 	yfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
+	dfiles=`diffstat -lp1 $patch|grep "boot/dts"|grep -v Makefile|sort`
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -322,9 +335,16 @@ test_patch() {
 		# Nothing special to do here..
 		TESTS_Y_SET="$TESTS_Y_SET"
 	fi
+	# Run DTB tests
+	TESTS_D_SET="dtest_build_dtb"
+	if [ -n "$COMPLETE_TESTS" ]; then
+		# we need to introduce dtbs_check in a manner which does'nt take time..
+		TESTS_D_SET="$TESTS_D_SET"
+	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
 	echo "Tests to run on yaml files(parallel): $TESTS_Y_SET"
+	echo "Tests to run on dtb files: $TESTS_D_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
 
@@ -336,6 +356,11 @@ test_patch() {
 	for test_s in $TESTS_B_SET
 	do
 		run_test start $TEST_DIR $test_s $ofiles
+	done
+
+	for test_s in $TESTS_D_SET
+	do
+		run_test start $TEST_DIR $test_s $dfiles
 	done
 
 	PIDS=""
@@ -351,6 +376,12 @@ test_patch() {
 		PIDS="$PIDS $!"
 	done
 
+	PIDS=""
+	for test_s in $TESTS_Y_SET
+	do
+		run_test start $TEST_DIR $test_s $yfiles
+		PIDS="$PIDS $!"
+	done
 	# wait for all to come back
 	echo Waiting for test PIDs: $PIDS
 	for pid in $PIDS
@@ -374,6 +405,12 @@ test_patch() {
 	do
 		run_test end $TEST_DIR $test_s $ofiles
 	done
+
+	for test_s in $TESTS_D_SET
+	do
+		run_test end $TEST_DIR $test_s $dfiles
+	done
+
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
