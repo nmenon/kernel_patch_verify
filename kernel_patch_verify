@@ -178,9 +178,9 @@ dtest_dtbs_check() {
 		for test_file in $test_files
 		do
 			D=`dirname $test_file`
-			rm -f $D/*.dtb
+			rm -f $D/*.dtb $D/*.yaml
 		done
-		kmake_single W=2 dtbs_check > /dev/null
+		(((make -j1 dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*") 1>&2
 	fi
 }
 
