@@ -168,7 +168,7 @@ dtest_build_dtb() {
 			D=`dirname $test_file`
 			rm -f $D/*.dtb
 		done
-		kmake_single W=2 dtbs > /dev/null
+		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$") 1>&2
 	fi
 }
 
