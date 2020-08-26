@@ -26,7 +26,8 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev llvm \
 			    autoconf pkg-config ocaml-nox ocaml-findlib menhir \
-			    diffstat
+			    diffstat\
+			    aria2
 COPY other-configs/ /
 COPY build-env.sh /tmp
 

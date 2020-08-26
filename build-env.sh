@@ -11,12 +11,14 @@ export SPARSE_TAG=v0.6.2
 export SMATCH_TAG=master
 export COCCI_TAG=1.0.8
 
+ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
+
 download_build_install_git()
 {
 	cd /tmp/
 	FILE=git-"$GIT_TAG".tar.gz
 	URL="https://git.kernel.org/pub/scm/git/git.git/snapshot/${FILE}"
-	wget -O /tmp/"$FILE" "$URL"
+	aria2c $ARIA_OPTS -o "$FILE" "$URL"
 	mkdir /tmp/git
 	tar -C /tmp/git --strip-components=1 -xvf "$FILE"
 	cd /tmp/git
@@ -82,13 +84,13 @@ download_and_install_armgcc()
 {
 	cd /tmp
 	#aarch64
-	F64='/tmp/aarch64-gcc.tar.xz'
+	F64='aarch64-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz?revision=61c3be5d-5175-4db6-9030-b565aae9f766&la=en&hash=0A37024B42028A9616F56A51C2D20755C5EBBCD7"
-	wget -O "$F64" "$URL"
+	aria2c $ARIA_OPTS -o "$F64" "$URL"
 	#arch32
-	F32='/tmp/aarch32-gcc.tar.xz'
+	F32='aarch32-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
-	wget -O "$F32" "$URL"
+	aria2c $ARIA_OPTS -o "$F32" "$URL"
 	mkdir -p /opt/cross-gcc-linux-9/
 	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xvf "$F32"
 	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xvf "$F64"
