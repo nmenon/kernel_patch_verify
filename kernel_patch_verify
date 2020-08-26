@@ -138,6 +138,19 @@ ftest_check_headerdeps() {
 	fi
 }
 
+ytest_dt_binding_check() {
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		test_files=`get_sorted_existing_files $*`
+		for test_file in $test_files
+		do
+			# If adding a new file
+			if [ -f "$test_file" ]; then
+				kmake_single dt_binding_check  DT_SCHEMA_FILES=$test_file>/dev/null
+			fi
+		done
+	fi
+}
+
 ###################
 # Basic build test
 btest_basic() {
@@ -281,6 +294,7 @@ test_patch() {
 	patch=$1
 	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
+	yfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -293,8 +307,15 @@ test_patch() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		TESTS_C_SET="$TESTS_C_SET ftest_check_includes ftest_check_headerdeps"
 	fi
+	# Run YAML tests
+	TESTS_Y_SET="ytest_dt_binding_check"
+	if [ -n "$COMPLETE_TESTS" ]; then
+		# Nothing special to do here..
+		TESTS_Y_SET="$TESTS_Y_SET"
+	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
+	echo "Tests to run on yaml files(parallel): $TESTS_Y_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
 
@@ -312,6 +333,12 @@ test_patch() {
 	for test_s in $TESTS_C_SET
 	do
 		run_test start $TEST_DIR $test_s $cfiles &
+		PIDS="$PIDS $!"
+	done
+
+	for test_s in $TESTS_Y_SET
+	do
+		run_test start $TEST_DIR $test_s $yfiles &
 		PIDS="$PIDS $!"
 	done
 
@@ -343,6 +370,12 @@ test_patch() {
 	for test_s in $TESTS_C_SET
 	do
 		run_test end $TEST_DIR $test_s $cfiles &
+		PIDS="$PIDS $!"
+	done
+
+	for test_s in $TESTS_Y_SET
+	do
+		run_test end $TEST_DIR $test_s $yfiles &
 		PIDS="$PIDS $!"
 	done
 
