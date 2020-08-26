@@ -45,9 +45,9 @@ DEF_V8_CROSS_COMPILE="$ccache aarch64-none-linux-gnu-"
 DEF_V8_BUILDTARGETS="Image dtbs"
 
 # Default parameters
-APPS_NEEDED="perl make ${CROSS_COMPILE}gcc sparse patch git realpath basename" 
+APPS_NEEDED="perl make ${CROSS_COMPILE}gcc dtc sparse patch git realpath basename"
 
-# Use all max num CPUs 
+# Use all max num CPUs
 DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
@@ -575,6 +575,10 @@ report_end() {
 		($app --version 2>&1) >> $LOG_FILE
 		echo >>$LOG_FILE
 	done
+	echo "version of dtschema python3 package:" >>$LOG_FILE
+	python3 -m pip list|grep dtschema >> $LOG_FILE
+	echo >>$LOG_FILE
+
 	log_marker
 	END_DATE=`date`
 	END_SEC=`date "+%s"`
