@@ -160,15 +160,22 @@ ytest_dt_binding_check() {
 	fi
 }
 
+# property_name_char_strict: requires fixes all the way to bindings fixes
+#	Which gets tricky to fix in a platform specific manner, so we skip
+#	by default unless -Z is used.
+DTB_FILTER_LIST="property_name_chars_strict"
 dtest_build_dtb() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		test_files=`get_sorted_existing_files $*`
+		if [ "$DTB_NOSKIP" -eq 1 ]; then
+			DTB_FILTER_LIST="Eitha3Ohyohngah1mai2"
+		fi
 		for test_file in $test_files
 		do
 			D=`dirname $test_file`
 			rm -f $D/*.dtb
 		done
-		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$") 1>&2
+		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$"|grep -v "$DTB_FILTER_LIST") 1>&2
 	fi
 }
 
@@ -654,7 +661,7 @@ APP_NAME=$0
 # Help
 usage() {
 	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U" >&2
+	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U -Z" >&2
 	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
 	echo -e "\t-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" >&2
 	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
@@ -669,6 +676,7 @@ usage() {
 	echo -e "\t-b base_branch: test patches from base_branch" >&2
 	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
 	echo -e "\t-U : Do u-boot basic sanity tests" >&2
+	echo -e "\t-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" >&2
 	echo -e "\t-m : maximum line length number to be passed on to checkpatch.pl" >&2
 	echo >&2
 	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
@@ -700,10 +708,14 @@ usage() {
 }
 
 ORIDE=0
-while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUV" opt; do
+DTB_NOSKIP=0
+while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUVZ" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
+	;;
+	Z)
+		DTB_NOSKIP=1
 	;;
 	B)
 		export KP_TARGETS="$OPTARG"
