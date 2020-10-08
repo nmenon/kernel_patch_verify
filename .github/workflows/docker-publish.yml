@@ -32,7 +32,7 @@ jobs:
             docker-compose --file docker-compose.test.yml build
             docker-compose --file docker-compose.test.yml run sut
           else
-            docker build --build-arg BASE_DISTRO=debian:stable-slim --build-arg USER_ID=1000 --build-arg INSTALL_GCC=0  . --file Dockerfile
+            docker build --build-arg BASE_DISTRO=debian:stable-slim --build-arg USER_UID=1000 --build-arg INSTALL_GCC=0  . --file Dockerfile
           fi
 
   # Push image to GitHub Packages.
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build image
-        run: docker build --build-arg BASE_DISTRO=debian:stable-slim --build-arg USER_ID=1000 --build-arg INSTALL_GCC=0 . --file Dockerfile --tag $IMAGE_NAME
+        run: docker build --build-arg BASE_DISTRO=debian:stable-slim --build-arg USER_UID=1000 --build-arg INSTALL_GCC=0 . --file Dockerfile --tag $IMAGE_NAME
 
       - name: Log into GitHub Container Registry
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
