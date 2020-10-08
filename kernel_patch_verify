@@ -563,10 +563,11 @@ report_tests() {
 		done
 	fi
 	if [ -z "$FAIL_TEST" ]; then
-		logs_me "Passed(ALL)"
+		logs_me "Passed(ALL): $PASS_TEST"
 	else
 		logs_me "Failed"
 		logs_me "\tFail tests: $FAIL_TEST"
+		logs_me "\tPass tests: $PASS_TEST"
 	fi
 
 }
