@@ -25,9 +25,14 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    aria2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 COPY other-configs/ /
+COPY other-configs/ /opt/other-configs
 COPY build-env.sh /tmp
 
 RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
+
+COPY kernel_patch_verify /usr/local/bin/kernel_patch_verify
+
+RUN cp -rvfa /usr/local /opt/local
 
 FROM $BASE_DISTRO
 
@@ -46,9 +51,6 @@ RUN mkdir -p /workdir && groupadd -r swuser -g $USER_UID && \
 useradd -u $USER_UID -r -g swuser -d /workdir -s /sbin/nologin -c "Docker kernel patch user" swuser && \
 chown -R swuser:swuser /workdir && mkdir /ccache && chown -R swuser:swuser /ccache
 
-COPY --from=0 /opt /opt
-COPY other-configs/ /
-
 RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --no-install-recommends \
 			    build-essential wget gcc ccache \
 			    ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison libyaml-dev python3-pip \
@@ -61,10 +63,12 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 	rm -rf /var/lib/apt/lists/* && \
 	update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
+COPY --from=0 /opt /opt
 
-COPY --from=0 /usr/local /usr/local
-RUN ldconfig /usr/local/lib
-COPY kernel_patch_verify /usr/bin
+RUN cp -rvfa /opt/other-configs/* / && rm -rvf /opt/other-configs/ && \
+    cp -rvfa /opt/local/* /usr/local/ && rm -rf /opt/local && \
+    mv /usr/local/bin/kernel_patch_verify /usr/bin && \
+    ldconfig /usr/local/lib
 
 USER swuser
 WORKDIR /workdir
