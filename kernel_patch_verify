@@ -334,7 +334,7 @@ test_patch() {
 	patch=$1
 	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
 	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
-	yfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
+	yfiles=`diffstat -lp1 $patch|grep -P "\.yaml$"|sort`
 	dfiles=`diffstat -lp1 $patch|grep "boot/dts"|grep -v Makefile|sort`
 
 	# Run sequential tests
