@@ -54,7 +54,7 @@ DEFAULT_TMPDIR="/tmp"
 
 COVER_LETTER="cover-letter.[patch\|diff]$"
 
-LINE_LENGTH=80
+LINE_LENGTH=100
 
 UBOOT_TESTING=0
 # We will add to this later.. but allow user to provide his own choice of stuff
