@@ -20,7 +20,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev llvm \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev\
+			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev libmenhir-ocaml-dev \
 			    diffstat \
 			    aria2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
@@ -55,7 +55,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev\
+			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev libmenhir-ocaml-dev \
 			    diffstat &&\
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* && \
