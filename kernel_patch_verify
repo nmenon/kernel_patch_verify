@@ -154,6 +154,9 @@ ytest_dt_binding_check() {
 		do
 			# If adding a new file
 			if [ -f "$test_file" ]; then
+				rm -f Documentation/devicetree/bindings/processed-schema-examples.json
+				D=`dirname $test_file`
+				rm -f $D/*.example.*
 				kmake_single dt_binding_check  DT_SCHEMA_FILES=$test_file>/dev/null
 			fi
 		done
@@ -175,6 +178,8 @@ dtest_build_dtb() {
 			D=`dirname $test_file`
 			rm -f $D/*.dtb
 		done
+		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
+		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
 		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$"|grep -v "$DTB_FILTER_LIST") 1>&2
 	fi
 }
@@ -187,6 +192,8 @@ dtest_dtbs_check() {
 			D=`dirname $test_file`
 			rm -f $D/*.dtb $D/*.yaml
 		done
+		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
+		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
 		(((make -j1 dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*") 1>&2
 	fi
 }
