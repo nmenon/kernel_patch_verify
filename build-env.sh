@@ -23,15 +23,15 @@ download_build_install_git()
 	tar -C /tmp/git --strip-components=1 -xvf "$FILE"
 	rm $FILE
 	cd /tmp/git
-	make -j "$NPROC" prefix=/usr
-	make -j "$NPROC" prefix=/usr install
+	make -j "$NPROC" prefix=/usr/local
+	make -j "$NPROC" prefix=/usr/local install
 	cd /tmp
 	rm -rf /tmp/git*
 }
 
 download_build_install_yaml_dep()
 {
-	pip3 install git+https://github.com/devicetree-org/dt-schema.git@master
+	pip3 install git+https://github.com/devicetree-org/dt-schema.git@v2020.08.1
 }
 
 download_build_install_dtc()
@@ -41,7 +41,7 @@ download_build_install_dtc()
 	git clone --depth=1 --branch "$DTC_TAG" "$URL"
 	cd /tmp/dtc
 #make -j $NPROC PREFIX=/usr SETUP_PREFIX=/usr install NO_PYTHON=1
-	make -j $NPROC PREFIX=/usr SETUP_PREFIX=/usr install
+	make -j $NPROC PREFIX=/usr/local SETUP_PREFIX=/usr/local install
 	cd /tmp
 	rm -rf /tmp/dtc
 }
@@ -52,7 +52,7 @@ download_build_install_sparse()
 	URL="git://git.kernel.org/pub/scm/devel/sparse/sparse.git"
 	git clone --depth=1 --branch "$SPARSE_TAG" "$URL"
 	cd /tmp/sparse
-	make -j $NPROC PREFIX=/usr install
+	make -j $NPROC PREFIX=/usr/local install
 	cd /tmp
 	rm -rf /tmp/sparse
 }
@@ -63,7 +63,7 @@ download_build_install_smatch()
 	URL="git://repo.or.cz/smatch"
 	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
-	make -j $NPROC PREFIX=/usr install
+	make -j $NPROC PREFIX=/usr/local install
 	cd /tmp
 	rm -rf /tmp/smatch
 }
@@ -75,7 +75,7 @@ download_build_install_coccinelle()
 	git clone --depth=1 --branch "$COCCI_TAG" "$URL"
 	cd /tmp/coccinelle
 	./autogen
-	./configure --prefix=/usr
+	./configure --prefix=/usr/local
 	make install
 	cd /tmp
 	rm -rf /tmp/coccinelle
