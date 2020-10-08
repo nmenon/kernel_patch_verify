@@ -10,6 +10,7 @@ export DTC_TAG=v1.6.0
 export SPARSE_TAG=v0.6.2
 export SMATCH_TAG=master
 export COCCI_TAG=1.0.8
+export DTSCHEMA_REV=v2020.08.1
 
 ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
 
@@ -29,9 +30,13 @@ download_build_install_git()
 	rm -rf /tmp/git*
 }
 
-download_build_install_yaml_dep()
+download_build_install_python_deps()
 {
-	pip3 install git+https://github.com/devicetree-org/dt-schema.git@v2020.08.1
+	# Get latest pip
+	python -m pip install --upgrade pip
+	python -m pip install --upgrade setuptools
+	python -m pip install --upgrade six jsonschema
+	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 }
 
 download_build_install_dtc()
@@ -101,7 +106,7 @@ download_and_install_armgcc()
 }
 
 download_build_install_git
-download_build_install_yaml_dep
+download_build_install_python_deps
 download_build_install_dtc
 download_build_install_sparse
 download_build_install_smatch
