@@ -10,8 +10,8 @@ USER root
 # In case of Proxy based environment, leave the following enabled.
 # in Direct internet cases, comment out the following two lines.
 #--- PROXY SETUP START
-# COPY proxy-configuration/ /
-# RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
+COPY proxy-configuration/ /
+RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
 #--- END START
 
 
@@ -43,8 +43,8 @@ ARG INSTALL_GCC=SPECIFY_ME
 USER root
 
 #--- PROXY SETUP START
-# COPY proxy-configuration/ /
-# RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
+COPY proxy-configuration/ /
+RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
 #--- END START
 
 # Add an ordinary user - This is not going to change
