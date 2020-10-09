@@ -45,5 +45,5 @@ if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
 	DOCKER_MOUNT_DIRS+=" -v	$GIT_WORKTREE_COMMONDIR:$GIT_WORKTREE_COMMONDIR "
 fi
 
-docker run --rm -ti "$DOCKER_MOUNT_DIRS" "$IMG_NAME"  kernel_patch_verify $*
+docker run --rm -ti $DOCKER_MOUNT_DIRS "$IMG_NAME"  kernel_patch_verify $*
 rm -f $TMP_GITCONFIG
