@@ -1,7 +1,14 @@
 #!/bin/bash
 
 # Check if Docker image exists
-IMG_NAME=arm-kernel-dev
+
+# Directly from Docker hub:
+IMG_NAME=nishanthmenon/arm-kernel-dev
+
+# TBD: If we are using from github -> I need to figure out how to get that working..
+
+# If we are building locally
+# IMG_NAME=arm-kernel-dev
 
 # Check if docker exists
 docker=`which docker`
@@ -30,5 +37,5 @@ git config --list|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
 echo '[core]' >>$TMP_GITCONFIG
 git config --list|grep ^core|cut -d '.' -f2->>$TMP_GITCONFIG
 
-docker run --rm -ti -v $TMP_GITCONFIG:/workdir/.gitconfig -v /tmp:/tmp -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir arm-kernel-dev kernel_patch_verify $*
+docker run --rm -ti -v $TMP_GITCONFIG:/workdir/.gitconfig -v /tmp:/tmp -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir "$IMG_NAME" kernel_patch_verify $*
 rm -f $TMP_GITCONFIG
