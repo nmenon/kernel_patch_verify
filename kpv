@@ -2,8 +2,8 @@
 
 # Check if Docker image exists
 
-# Directly from Docker hub:
-IMG_NAME=nishanthmenon/arm-kernel-dev
+# Use Directly from Docker hub if not provided:
+IMG_NAME="${IMG_NAME:-nishanthmenon/arm-kernel-dev}"
 
 # TBD: If we are using from github -> I need to figure out how to get that working..
 
