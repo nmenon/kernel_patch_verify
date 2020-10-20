@@ -5,7 +5,7 @@ source /etc/profile
 shopt -s expand_aliases
 NPROC=`nproc`
 
-export GIT_TAG=2.28.0
+export GIT_TAG=2.29.0
 export DTC_TAG=v1.6.0
 export SPARSE_TAG=v0.6.2
 export SMATCH_TAG=master
