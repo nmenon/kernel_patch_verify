@@ -5,11 +5,17 @@ source /etc/profile
 shopt -s expand_aliases
 NPROC=`nproc`
 
+# https://git.kernel.org/pub/scm/git/git.git/
 export GIT_TAG=2.29.0
+# https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.6.0
+# https://git.kernel.org/pub/scm/devel/sparse/sparse.git
 export SPARSE_TAG=v0.6.2
+# https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
+# https://github.com/coccinelle/coccinelle/tags
 export COCCI_TAG=1.0.8
+# https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2020.08.1
 
 ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
