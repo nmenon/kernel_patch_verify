@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=`nproc`
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.29.0
+export GIT_TAG=2.29.1
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.6.0
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
