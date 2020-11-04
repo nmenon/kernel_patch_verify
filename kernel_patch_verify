@@ -184,6 +184,31 @@ dtest_build_dtb() {
 	fi
 }
 
+dtest_build_dtb_to_dts() {
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		test_files=`get_sorted_existing_files $*`
+		for test_file in $test_files
+		do
+			D=`dirname $test_file`
+			rm -f $D/*.dtb
+		done
+		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
+		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		(kmake_single W=2 dtbs > /dev/null) 2>/dev/null
+		TEST_DTBS_FULL=""
+		for test_file in $test_files
+		do
+			D=`dirname $test_file`
+			TEST_DTBS=`ls $D/*.dtb`
+			TEST_DTBS_FULL=`echo $TEST_DTBS_FULL $TEST_DTBS| tr ' ' '\n'|sort -u`
+		done
+		for dtb in $TEST_DTBS_FULL
+		do
+			dtc -I dtb -O dts $dtb >/dev/null
+		done
+	fi
+}
+
 dtest_dtbs_check() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		test_files=`get_sorted_existing_files $*`
@@ -362,7 +387,7 @@ test_patch() {
 		TESTS_Y_SET="$TESTS_Y_SET"
 	fi
 	# Run DTB tests
-	TESTS_D_SET="dtest_build_dtb"
+	TESTS_D_SET="dtest_build_dtb dtest_build_dtb_to_dts"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		# we need to introduce dtbs_check in a manner which does'nt take time..
 		TESTS_D_SET="$TESTS_D_SET dtest_dtbs_check"
