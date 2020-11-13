@@ -114,8 +114,8 @@ download_and_install_armgcc()
 download_build_install_git
 download_build_install_python_deps
 download_build_install_dtc
-download_build_install_sparse
 download_build_install_smatch
+download_build_install_sparse
 download_build_install_coccinelle
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc
