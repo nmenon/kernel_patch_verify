@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Directly from Docker hub:
-IMG_NAME=nishanthmenon/arm-kernel-dev
+# Use Directly from Docker hub if not provided:
+IMG_NAME="${IMG_NAME:-nishanthmenon/arm-kernel-dev}"
 
 # TBD: If we are using from github -> I need to figure out how to get that working..
 
@@ -18,6 +18,11 @@ dimg=`docker image ls | grep arm-kernel-dev`
 if [ -z "$dimg" ]; then
 	echo "Please install Docker Image arm-kernel-dev from: cd" `dirname $0` ";make"
 	exit 1
+fi
+# If we are working off docker image from docker hub, make sure
+# we have the latest.
+if [ "$IMG_NAME" = "nishanthmenon/arm-kernel-dev" ]; then
+	docker pull $IMG_NAME
 fi
 ccache=`which ccache`
 if [ -z "ccache" ]; then

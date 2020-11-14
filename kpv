@@ -21,6 +21,11 @@ if [ -z "$dimg" ]; then
 	echo "Please install Docker Image arm-kernel-dev from: cd" `dirname $0` ";make"
 	exit 1
 fi
+# If we are working off docker image from docker hub, make sure
+# we have the latest.
+if [ "$IMG_NAME" = "nishanthmenon/arm-kernel-dev" ]; then
+	docker pull $IMG_NAME
+fi
 ccache=`which ccache`
 if [ -z "ccache" ]; then
 	if [ ! -d "/tmp/ccache" ]; then
