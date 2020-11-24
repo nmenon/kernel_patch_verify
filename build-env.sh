@@ -42,6 +42,7 @@ download_build_install_python_deps()
 	python -m pip install --upgrade pip
 	python -m pip install --upgrade setuptools
 	python -m pip install --upgrade six jsonschema
+	python -m pip install --upgrade ply
 	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 }
 
