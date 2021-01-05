@@ -39,7 +39,7 @@ git config -l|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
 echo '[core]' >>$TMP_GITCONFIG
 git config -l|grep ^core|cut -d '.' -f2->>$TMP_GITCONFIG
 
-export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-9/bin/
+export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
 # If we wanted to get to bash shell:
 docker run --rm -ti -e PATH -v $TMP_GITCONFIG:/workdir/.gitconfig -v /tmp:/tmp -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir "$IMG_NAME" bash
 
