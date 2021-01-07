@@ -21,6 +21,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev llvm \
 			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev libmenhir-ocaml-dev \
+			    libgmp-dev libmpc-dev \
 			    diffstat yamllint \
 			    aria2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
@@ -58,6 +59,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev \
 			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.7 libpython3.7-dev libmenhir-ocaml-dev \
+			    libgmp-dev libmpc-dev \
 			    diffstat yamllint &&\
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* && \
