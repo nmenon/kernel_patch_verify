@@ -52,7 +52,7 @@ DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
-COVER_LETTER="cover-letter.[patch\|diff]$"
+COVER_LETTER="cover-letter.[patch\|diff]"
 
 LINE_LENGTH=100
 
