@@ -157,7 +157,7 @@ ytest_dt_binding_check() {
 				rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 				D=`dirname $test_file`
 				rm -f $D/*.example.*
-				kmake_single dt_binding_check  DT_SCHEMA_FILES=$test_file>/dev/null
+				kmake_single dt_binding_check DT_CHECKER_FLAGS=-m DT_SCHEMA_FILES=$test_file>/dev/null
 			fi
 		done
 	fi
