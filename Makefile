@@ -1,7 +1,7 @@
 .PHONY: all
 
-BASE_DISTRO=debian:stable-slim
-IMAGE_TOBUILD=arm-kernel-dev
+BASE_DISTRO ?= debian:stable-slim
+IMAGE_TOBUILD ?= arm-kernel-dev
 
 REPO ?=
 INSTALL_GCC ?= 0
