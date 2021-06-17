@@ -45,7 +45,9 @@ if [ -z "$GE" -o -z "$GN" ]; then
 	exit 3
 fi
 
-TMP_GITCONFIG=`mktemp`
+TMP_PREFIX="kernel_patch_verify_kpv"
+
+TMP_GITCONFIG=`mktemp -t $TMP_PREFIX.gitconfig.XXXXXX`
 echo '[user]' >$TMP_GITCONFIG
 git config --list|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
 
@@ -61,4 +63,5 @@ if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
 fi
 export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
 docker run --rm -ti -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME"  kernel_patch_verify $*
+
 rm -f $TMP_GITCONFIG

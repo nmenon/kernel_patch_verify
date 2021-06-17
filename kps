@@ -43,7 +43,9 @@ if [ -z "$GE" -o -z "$GN" ]; then
 	exit 3
 fi
 
-TMP_GITCONFIG=`mktemp`
+TMP_PREFIX="kernel_patch_verify_kps"
+
+TMP_GITCONFIG=`mktemp -t $TMP_PREFIX.gitconfig.XXXXXX`
 echo '[user]' >$TMP_GITCONFIG
 git config -l|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
 echo '[core]' >>$TMP_GITCONFIG
