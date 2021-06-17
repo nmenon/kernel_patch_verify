@@ -6,9 +6,9 @@ shopt -s expand_aliases
 NPROC=`nproc`
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.31.1
+export GIT_TAG=2.32.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
-export DTC_TAG=v1.6.0
+export DTC_TAG=v1.6.1
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
 export SPARSE_TAG=v0.6.3
 # https://repo.or.cz/smatch.git
@@ -16,7 +16,7 @@ export SMATCH_TAG=master
 # https://github.com/coccinelle/coccinelle/tags
 export COCCI_TAG=1.1.0
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2021.05
+export DTSCHEMA_REV=v2021.06
 
 ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
 
