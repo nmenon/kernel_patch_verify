@@ -47,12 +47,26 @@ TMP_PREFIX="kernel_patch_verify_kps"
 
 TMP_GITCONFIG=`mktemp -t $TMP_PREFIX.gitconfig.XXXXXX`
 echo '[user]' >$TMP_GITCONFIG
-git config -l|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
+git config --list|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
+
 echo '[core]' >>$TMP_GITCONFIG
-git config -l|grep ^core|cut -d '.' -f2->>$TMP_GITCONFIG
+git config --list|grep ^core|cut -d '.' -f2->>$TMP_GITCONFIG
+
+DOCKER_MOUNT_DIRS="-v $TMP_GITCONFIG:/workdir/.gitconfig "
+DOCKER_MOUNT_DIRS+="-v /tmp:/tmp "
+DOCKER_MOUNT_DIRS+="-v /opt:/opt "
+DOCKER_MOUNT_DIRS+="-v $CCACHEDIR:/ccache "
+DOCKER_MOUNT_DIRS+="-v $(pwd):/workdir "
+
+# Mount parent directory if its a worktree
+GIT_WORKTREE_COMMONDIR=$(git rev-parse --git-common-dir)
+if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
+	DOCKER_MOUNT_DIRS+=" -v	$GIT_WORKTREE_COMMONDIR:$GIT_WORKTREE_COMMONDIR "
+fi
 
 export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
+
 # If we wanted to get to bash shell:
-docker run --rm -ti -e PATH -v $TMP_GITCONFIG:/workdir/.gitconfig -v /tmp:/tmp -v /opt:/opt -v "$CCACHEDIR":/ccache -v `pwd`:/workdir "$IMG_NAME" bash
+docker run --rm -ti -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash
 
 rm -f $TMP_GITCONFIG
