@@ -52,7 +52,16 @@ git config --list|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
 echo '[core]' >>$TMP_GITCONFIG
 git config --list|grep ^core|cut -d '.' -f2->>$TMP_GITCONFIG
 
-DOCKER_MOUNT_DIRS="-v $TMP_GITCONFIG:/workdir/.gitconfig "
+TMP_PASSWD=`mktemp -t $TMP_PREFIX.passwd.XXXXXX`
+TMP_GRP=`mktemp -t $TMP_PREFIX.grp.XXXXXX`
+USER_ID=`id -u`
+GROUP_ID=`id -g`
+getent group  $(id -gn) > $TMP_GRP
+getent passwd $(id -un) > $TMP_PASSWD
+
+DOCKER_MOUNT_DIRS="-v $TMP_GITCONFIG:$HOME/.gitconfig "
+DOCKER_MOUNT_DIRS+="-v $TMP_PASSWD:/etc/passwd:ro "
+DOCKER_MOUNT_DIRS+="-v $TMP_GRP:/etc/group:ro "
 DOCKER_MOUNT_DIRS+="-v /tmp:/tmp "
 DOCKER_MOUNT_DIRS+="-v /opt:/opt "
 DOCKER_MOUNT_DIRS+="-v $CCACHEDIR:/ccache "
@@ -67,6 +76,6 @@ fi
 export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
 
 # If we wanted to get to bash shell:
-docker run --rm -ti -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash
+docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash
 
-rm -f $TMP_GITCONFIG
+rm -f $TMP_GITCONFIG $TMP_GRP $TMP_PASSWD
