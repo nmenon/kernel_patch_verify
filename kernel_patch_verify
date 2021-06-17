@@ -898,6 +898,15 @@ if [ $? -ne 0 ]; then
 	exit 2
 fi
 
+GN=`git config --get user.name`
+GE=`git config --get user.email`
+if [ -z "$GE" -o -z "$GN" ]; then
+	echo "We need to know who you are to proceed, please check 'git config -l' and fix via:"
+	echo 'git config --global user.email "you@example.com"'
+	echo 'git config --global user.name "Your Name"'
+	exit 3
+fi
+
 if [ -z "$CPUS" ]; then
 	CPUS=$DEF_CPUS
 fi

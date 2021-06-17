@@ -35,6 +35,16 @@ if [ -z "ccache" ]; then
 else
 	CCACHEDIR=`ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3`
 fi
+
+GN=`git config --get user.name`
+GE=`git config --get user.email`
+if [ -z "$GE" -o -z "$GN" ]; then
+	echo "We need to know who you are to proceed, please check 'git config -l' and fix via:"
+	echo 'git config --global user.email "you@example.com"'
+	echo 'git config --global user.name "Your Name"'
+	exit 3
+fi
+
 TMP_GITCONFIG=`mktemp`
 echo '[user]' >$TMP_GITCONFIG
 git config --list|grep ^user|cut -d '.' -f2->>$TMP_GITCONFIG
