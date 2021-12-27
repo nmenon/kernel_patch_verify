@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=`nproc`
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.32.0
+export GIT_TAG=2.34.1
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.6.1
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
@@ -16,7 +16,7 @@ export SMATCH_TAG=master
 # https://github.com/coccinelle/coccinelle/tags
 export COCCI_TAG=1.1.0
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2021.10
+export DTSCHEMA_REV=v2021.12
 
 ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
 
@@ -50,7 +50,7 @@ download_build_install_python_deps()
 download_build_install_dtc()
 {
 	cd /tmp/
-	URL="git://git.kernel.org/pub/scm/utils/dtc/dtc.git"
+	URL="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
 	git clone --depth=1 --branch "$DTC_TAG" "$URL"
 	cd /tmp/dtc
 #make -j $NPROC PREFIX=/usr SETUP_PREFIX=/usr install NO_PYTHON=1
@@ -62,7 +62,7 @@ download_build_install_dtc()
 download_build_install_sparse()
 {
 	cd /tmp/
-	URL="git://git.kernel.org/pub/scm/devel/sparse/sparse.git"
+	URL="https://git.kernel.org/pub/scm/devel/sparse/sparse.git"
 	git clone --depth=1 --branch "$SPARSE_TAG" "$URL"
 	cd /tmp/sparse
 	make -j $NPROC PREFIX=/usr/local install
@@ -73,7 +73,7 @@ download_build_install_sparse()
 download_build_install_smatch()
 {
 	cd /tmp/
-	URL="git://repo.or.cz/smatch"
+	URL="https://repo.or.cz/smatch.git"
 	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
 	make -j $NPROC PREFIX=/usr/local install
