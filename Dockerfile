@@ -20,7 +20,9 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
 			    flex bison pkg-config \
 			    sqlite3 libsqlite3-dev llvm \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.9 libpython3.9-dev libmenhir-ocaml-dev \
+			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libmenhir-ocaml-dev \
+			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
+			    libpython3.9 libpython3.9-dev \
 			    libgmp-dev libmpc-dev \
 			    diffstat yamllint \
 			    aria2
@@ -57,8 +59,10 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 			    ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison libyaml-dev python3-pip \
 			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
 			    flex bison pkg-config \
-			    sqlite3 libsqlite3-dev \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libpython3.9 libpython3.9-dev libmenhir-ocaml-dev \
+			    sqlite3 libsqlite3-dev llvm\
+			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libmenhir-ocaml-dev \
+			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
+			    libpython3.9 libpython3.9-dev \
 			    libgmp-dev libmpc-dev \
 			    diffstat yamllint &&\
 	apt-get clean && \
