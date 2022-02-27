@@ -44,6 +44,9 @@ ARG INSTALL_GCC=SPECIFY_ME
 
 USER root
 
+# Publish the source repository
+LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_verify
+
 #--- PROXY SETUP START
 # COPY proxy-configuration/ /
 # RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
