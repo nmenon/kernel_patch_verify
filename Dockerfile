@@ -67,7 +67,8 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
 			    libpython3.9 libpython3.9-dev \
 			    libgmp-dev libmpc-dev \
-			    diffstat yamllint swig python3 python3-ruamel.yaml\
+			    diffstat yamllint swig python3 python3-ruamel.yaml \
+			    &&\
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* && \
 	update-alternatives --install /usr/bin/python python /usr/bin/python3 1
