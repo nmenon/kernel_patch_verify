@@ -24,7 +24,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y bui
 			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
 			    libpython3.9 libpython3.9-dev \
 			    libgmp-dev libmpc-dev \
-			    diffstat yamllint \
+			    diffstat yamllint swig python3 python3-ruamel.yaml\
 			    aria2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 COPY other-configs/ /
@@ -67,7 +67,7 @@ RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --n
 			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
 			    libpython3.9 libpython3.9-dev \
 			    libgmp-dev libmpc-dev \
-			    diffstat yamllint &&\
+			    diffstat yamllint swig python3 python3-ruamel.yaml\
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/* && \
 	update-alternatives --install /usr/bin/python python /usr/bin/python3 1
