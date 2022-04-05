@@ -15,11 +15,6 @@ if [ -z "$docker" ]; then
 	echo "Please install Docker and Image arm-kernel-dev from:" `dirname $0`
 	exit 1
 fi
-dimg=`docker image ls | grep arm-kernel-dev`
-if [ -z "$dimg" ]; then
-	echo "Please install Docker Image arm-kernel-dev from: cd" `dirname $0` ";make"
-	exit 1
-fi
 
 # If we are working off docker image from github container reg, make sure
 # we have the latest.
