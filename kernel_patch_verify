@@ -168,6 +168,32 @@ ytest_dt_binding_check() {
 	fi
 }
 
+ytest_dtbs_check() {
+	if [ $UBOOT_TESTING -eq 0 ]; then
+		# If we have no yamls to check, nothing to run.
+		if [ -z "$*" ]; then
+			return
+		fi
+
+		# Re-Build all the dtbs to get a list (Ignore log)
+		kmake dtbs 2>&1 >/dev/null
+
+		all_dtb_files=`find . -iname *.dtb`
+		test_files=`get_sorted_existing_files $all_dtb_files`
+		if [ -z "$test_files" ]; then
+			return
+		fi
+		for test_file in $test_files
+		do
+			D=`dirname $test_file`
+			rm -f $D/*.dtb $D/*.yaml
+		done
+		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
+		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		(((make -j1 dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*") 1>&2
+	fi
+}
+
 # property_name_char_strict: requires fixes all the way to bindings fixes
 #	Which gets tricky to fix in a platform specific manner, so we skip
 #	by default unless -Z is used.
@@ -398,7 +424,7 @@ test_patch() {
 	TESTS_Y_SET="ytest_dt_binding_check"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		# Nothing special to do here..
-		TESTS_Y_SET="$TESTS_Y_SET"
+		TESTS_Y_SET="$TESTS_Y_SET ytest_dtbs_check"
 	fi
 	# Run DTB tests
 	TESTS_D_SET="dtest_build_dtb dtest_build_dtb_to_dts"
