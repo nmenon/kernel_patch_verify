@@ -12,7 +12,7 @@ IMG_NAME="${IMG_NAME:-ghcr.io/nmenon/arm-kernel-dev}"
 # Check if docker exists
 docker=`which docker`
 if [ -z "$docker" ]; then
-	echo "Please install Docker and Image arm-kernel-dev from:" `dirname $0`
+	echo "Please install Docker to be able to function"
 	exit 1
 fi
 
