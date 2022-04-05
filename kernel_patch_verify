@@ -104,6 +104,11 @@ run_test_dummy() {
 get_sorted_existing_files()
 {
 	test_files=""
+	# If there are no files, then there is nothing to sort.. return empty
+	if [ -z "$*" ]; then
+		echo
+		return
+	fi
 	for i in `(ls -d $* 2>/dev/null) | sort`
 	do
 		if [ -f "$i" ]; then
