@@ -175,6 +175,9 @@ DTB_FILTER_LIST="property_name_chars_strict"
 dtest_build_dtb() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		test_files=`get_sorted_existing_files $*`
+		if [ -z "$test_files" ]; then
+			return
+		fi
 		if [ "$DTB_NOSKIP" -eq 1 ]; then
 			DTB_FILTER_LIST="Eitha3Ohyohngah1mai2"
 		fi
@@ -192,6 +195,9 @@ dtest_build_dtb() {
 dtest_build_dtb_to_dts() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		test_files=`get_sorted_existing_files $*`
+		if [ -z "$test_files" ]; then
+			return
+		fi
 		for test_file in $test_files
 		do
 			D=`dirname $test_file`
@@ -217,6 +223,9 @@ dtest_build_dtb_to_dts() {
 dtest_dtbs_check() {
 	if [ $UBOOT_TESTING -eq 0 ]; then
 		test_files=`get_sorted_existing_files $*`
+		if [ -z "$test_files" ]; then
+			return
+		fi
 		for test_file in $test_files
 		do
 			D=`dirname $test_file`
