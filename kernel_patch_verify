@@ -409,7 +409,7 @@ test_patch() {
 	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
-	echo "Tests to run on yaml files(parallel): $TESTS_Y_SET"
+	echo "Tests to run on yaml files: $TESTS_Y_SET"
 	echo "Tests to run on dtb files$DWARNING: $TESTS_D_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
@@ -429,16 +429,15 @@ test_patch() {
 		run_test start $TEST_DIR $test_s $dfiles
 	done
 
+	for test_s in $TESTS_Y_SET
+	do
+		run_test start $TEST_DIR $test_s $yfiles
+	done
+
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
 		run_test start $TEST_DIR $test_s $cfiles &
-		PIDS="$PIDS $!"
-	done
-
-	for test_s in $TESTS_Y_SET
-	do
-		run_test start $TEST_DIR $test_s $yfiles &
 		PIDS="$PIDS $!"
 	done
 
@@ -471,17 +470,15 @@ test_patch() {
 		run_test end $TEST_DIR $test_s $dfiles
 	done
 
+	for test_s in $TESTS_Y_SET
+	do
+		run_test end $TEST_DIR $test_s $yfiles
+	done
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
 		run_test end $TEST_DIR $test_s $cfiles &
-		PIDS="$PIDS $!"
-	done
-
-	for test_s in $TESTS_Y_SET
-	do
-		run_test end $TEST_DIR $test_s $yfiles &
 		PIDS="$PIDS $!"
 	done
 
