@@ -33,8 +33,6 @@ COPY build-env.sh /tmp
 
 RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
-COPY kernel_patch_verify /usr/local/bin/kernel_patch_verify
-
 RUN cp -rvfa /usr/local /opt/local
 
 FROM $BASE_DISTRO
@@ -77,8 +75,10 @@ COPY --from=0 /opt /opt
 
 RUN cp -rvfa /opt/other-configs/* / && rm -rvf /opt/other-configs/ && \
     cp -rvfa /opt/local/* /usr/local/ && rm -rf /opt/local && \
-    mv /usr/local/bin/kernel_patch_verify /usr/bin && \
     ldconfig /usr/local/lib
+
+COPY kernel_patch_verify /usr/bin/kernel_patch_verify
+
 
 USER swuser
 WORKDIR /workdir
