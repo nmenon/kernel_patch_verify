@@ -428,12 +428,6 @@ test_patch() {
 		PIDS="$PIDS $!"
 	done
 
-	PIDS=""
-	for test_s in $TESTS_Y_SET
-	do
-		run_test start $TEST_DIR $test_s $yfiles
-		PIDS="$PIDS $!"
-	done
 	# wait for all to come back
 	echo Waiting for test PIDs: $PIDS
 	for pid in $PIDS
