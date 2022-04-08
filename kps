@@ -73,6 +73,6 @@ fi
 export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
 
 # If we wanted to get to bash shell:
-docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash
+docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash --init-file /etc/profile
 
 rm -f $TMP_GITCONFIG $TMP_GRP $TMP_PASSWD
