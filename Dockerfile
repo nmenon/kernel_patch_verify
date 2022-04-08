@@ -4,8 +4,6 @@ FROM $BASE_DISTRO
 ARG USER_UID=1000
 ARG INSTALL_GCC=0
 
-USER root
-
 # In case of Proxy based environment, leave the following enabled.
 # in Direct internet cases, comment out the following two lines.
 #--- PROXY SETUP START
@@ -73,8 +71,6 @@ FROM $BASE_DISTRO
 
 ARG USER_UID=1000
 ARG INSTALL_GCC=0
-
-USER root
 
 # Publish the source repository
 LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_verify
