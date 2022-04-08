@@ -137,10 +137,7 @@ RUN apt-get update && \
         yamllint \
         swig \
         python3 \
-        python3-ruamel.yaml && \
-    wget -q -O - 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x15CF4D18AF4F7421' | apt-key add - && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
+        python3-ruamel.yaml \
         llvm \
         clang \
         lld && \
