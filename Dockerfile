@@ -145,8 +145,9 @@ RUN apt-get update && \
         clang \
         lld && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+    rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 COPY --from=0 /opt /opt
 
