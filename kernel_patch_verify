@@ -951,6 +951,14 @@ if [ "$CURRENT_BRANCH" = "(no" ]; then
 	exit 3
 fi
 
+GIT_RM_DIR=`git rev-parse --git-path rebase-merge`
+GIT_RA_DIR=`git rev-parse --git-path rebase-apply`
+if [ -e "$GIT_RM_DIR" -o -e "$GIT_RA_DIR" ]; then
+	usage "$GIT_RA_DIR or $GIT_RM_DIR exists - implying rebase or am in progress. please cleanup to proceed - 'git am --abort;git rebase --abort' perhaps?"
+	exit 3
+fi
+
+
 TEST_BRANCH_NAME=kernel-patch-verify.$RANDOM
 TEST_DIR=$TEST_B_DIR/$TEST_BRANCH_NAME
 PATCHD=$TEST_DIR/patches
