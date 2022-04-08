@@ -89,7 +89,8 @@ RUN mkdir -p /workdir && groupadd -r swuser -g $USER_UID && \
 useradd -u $USER_UID -r -g swuser -d /workdir -s /sbin/nologin -c "Docker kernel patch user" swuser && \
 chown -R swuser:swuser /workdir && mkdir /ccache && chown -R swuser:swuser /ccache
 
-COPY llvm-config/ /tmp/llvm
+# Add our llvm repo configs
+COPY llvm-config /
 
 ARG DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
@@ -138,7 +139,6 @@ RUN apt-get update && \
         python3 \
         python3-ruamel.yaml && \
     wget -q -O - 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x15CF4D18AF4F7421' | apt-key add - && \
-    cp -rvf /tmp/llvm/etc/* /etc/ && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         llvm \
