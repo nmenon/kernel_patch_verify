@@ -66,11 +66,11 @@ if [ -z "$KP_TARGETS" ]; then
 fi
 
 kmake_single() {
-	make $KP_PARAMS -j1 $*
+	make "$KM_A" $KP_PARAMS "$KM_C" -j1 $*
 }
 
 kmake() {
-	make $KP_PARAMS -j$CPUS $*
+	make "$KM_A" $KP_PARAMS "$KM_C" -j$KM_CPUS $*
 }
 
 ###################
@@ -940,6 +940,15 @@ fi
 
 if [ -z "$CPUS" ]; then
 	CPUS=$DEF_CPUS
+	KM_CPUS=$CPUS
+fi
+
+if [ -n "$CROSS_COMPILE" ]; then
+	KM_C="CROSS_COMPILE=$CROSS_COMPILE"
+fi
+
+if [ -n "$ARCH" ]; then
+	KM_A="ARCH=$ARCH"
 fi
 
 if [ -z "$LOG_FILE" ]; then
