@@ -45,7 +45,7 @@ DEF_V8_CROSS_COMPILE="$ccache aarch64-none-linux-gnu-"
 DEF_V8_BUILDTARGETS="Image dtbs"
 
 # Default parameters
-APPS_NEEDED="perl make ${CROSS_COMPILE}gcc dtc sparse patch git realpath basename"
+APPS_NEEDED="perl make dtc sparse patch git realpath basename"
 
 # Use all max num CPUs
 DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
@@ -921,6 +921,10 @@ done
 if [ -z "$TEST_BRANCH" -a -z "$BASE_BRANCH" -a -z "$PATCH_DIR" -a -z "$TEST_TOP" ]; then
 	usage "Need at least 1 test type"
 	exit 2
+fi
+
+if [ -n "${CROSS_COMPILE}" ]; then
+	APPS_NEEDED="$APPS_NEEDED ${CROSS_COMPILE}gcc"
 fi
 
 check_missing_application
