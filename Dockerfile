@@ -59,10 +59,10 @@ RUN apt-get update && \
         aria2
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-COPY other-configs/ /
-COPY other-configs/ /opt/other-configs
-COPY build-env.sh /tmp
 
+COPY other-configs/ /
+
+COPY build-env.sh /tmp
 RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
 RUN cp -rvfa /usr/local /opt/local
@@ -142,10 +142,11 @@ RUN apt-get update && \
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
+COPY other-configs/ /
+
 COPY --from=0 /opt /opt
 
-RUN cp -rvfa /opt/other-configs/* / && rm -rvf /opt/other-configs/ && \
-    cp -rvfa /opt/local/* /usr/local/ && rm -rf /opt/local && \
+RUN cp -rvfa /opt/local/* /usr/local/ && rm -rf /opt/local && \
     ldconfig /usr/local/lib
 
 COPY kernel_patch_verify /usr/bin/kernel_patch_verify
