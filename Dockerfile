@@ -13,18 +13,53 @@ USER root
 # RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
 #--- END START
 
+ARG DEBIAN_FRONTEND noninteractive
+RUN apt-get update && \
+    apt-get install -y \
+        build-essential \
+        wget \
+        gcc \
+        ccache \
+        ncurses-dev \
+        xz-utils \
+        libssl-dev \
+        bc \
+        flex \
+        libelf-dev \
+        bison \
+        libyaml-dev \
+        python3-pip \
+        libcurl4-gnutls-dev \
+        libexpat1-dev \
+        gettext \
+        libz-dev \
+        libssl-dev \
+        flex \
+        bison \
+        pkg-config \
+        sqlite3 \
+        libsqlite3-dev \
+        llvm \
+        autoconf \
+        pkg-config \
+        ocaml-nox \
+        ocaml-findlib \
+        menhir \
+        libmenhir-ocaml-dev \
+        ocaml-native-compilers \
+        libpcre-ocaml-dev \
+        libparmap-ocaml-dev \
+        libpython3.9 \
+        libpython3.9-dev \
+        libgmp-dev \
+        libmpc-dev \
+        diffstat \
+        yamllint \
+        swig \
+        python3 \
+        python3-ruamel.yaml \
+        aria2
 
-RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y build-essential wget gcc ccache \
-			    ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison libyaml-dev python3-pip \
-			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
-			    flex bison pkg-config \
-			    sqlite3 libsqlite3-dev llvm \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libmenhir-ocaml-dev \
-			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
-			    libpython3.9 libpython3.9-dev \
-			    libgmp-dev libmpc-dev \
-			    diffstat yamllint swig python3 python3-ruamel.yaml\
-			    aria2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 COPY other-configs/ /
 COPY other-configs/ /opt/other-configs
@@ -56,27 +91,62 @@ chown -R swuser:swuser /workdir && mkdir /ccache && chown -R swuser:swuser /ccac
 
 COPY llvm-config/ /tmp/llvm
 
-RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y --no-install-recommends \
-			    ca-certificates  gnupg2\
-			    build-essential wget gcc ccache \
-			    ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison libyaml-dev python3-pip \
-			    libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev \
-			    flex bison pkg-config \
-			    sqlite3 libsqlite3-dev \
-			    autoconf pkg-config ocaml-nox ocaml-findlib menhir libmenhir-ocaml-dev \
-			    ocaml-native-compilers libpcre-ocaml-dev libparmap-ocaml-dev \
-			    libpython3.9 libpython3.9-dev \
-			    libgmp-dev libmpc-dev \
-			    diffstat yamllint swig python3 python3-ruamel.yaml \
-	&& \
-	wget -q -O -  'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x15CF4D18AF4F7421'|apt-key add - && \
-	cp -rvf /tmp/llvm/etc/* /etc/ && \
-	apt-get update; apt-get install -y --no-install-recommends \
-			    llvm clang lld \
-	&& \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists/* && \
-	update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+ARG DEBIAN_FRONTEND noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        gnupg2 \
+        build-essential \
+        wget \
+        gcc \
+        ccache \
+        ncurses-dev \
+        xz-utils \
+        libssl-dev \
+        bc \
+        flex \
+        libelf-dev \
+        bison \
+        libyaml-dev \
+        python3-pip \
+        libcurl4-gnutls-dev \
+        libexpat1-dev \
+        gettext \
+        libz-dev \
+        libssl-dev \
+        flex \
+        bison \
+        pkg-config \
+        sqlite3 \
+        libsqlite3-dev \
+        autoconf \
+        pkg-config \
+        ocaml-nox \
+        ocaml-findlib \
+        menhir \
+        libmenhir-ocaml-dev \
+        ocaml-native-compilers \
+        libpcre-ocaml-dev \
+        libparmap-ocaml-dev \
+        libpython3.9 \
+        libpython3.9-dev \
+        libgmp-dev \
+        libmpc-dev \
+        diffstat \
+        yamllint \
+        swig \
+        python3 \
+        python3-ruamel.yaml && \
+    wget -q -O - 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x15CF4D18AF4F7421' | apt-key add - && \
+    cp -rvf /tmp/llvm/etc/* /etc/ && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        llvm \
+        clang \
+        lld && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 COPY --from=0 /opt /opt
 
