@@ -55,7 +55,7 @@ if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
 	DOCKER_MOUNT_DIRS+=" -v	$GIT_WORKTREE_COMMONDIR:$GIT_WORKTREE_COMMONDIR "
 fi
 
-export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/
+export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-10/bin/
 
 docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME"  kernel_patch_verify $*
 
