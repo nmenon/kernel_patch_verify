@@ -65,8 +65,6 @@ COPY other-configs/ /
 COPY build-env.sh /tmp
 RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
-RUN cp -rvfa /usr/local /opt/local
-
 FROM $BASE_DISTRO
 
 ARG USER_UID=1000
@@ -144,10 +142,9 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 COPY other-configs/ /
 
-COPY --from=0 /opt /opt
+COPY --from=0 /usr/local/ /usr/local/
 
-RUN cp -rvfa /opt/local/* /usr/local/ && rm -rf /opt/local && \
-    ldconfig /usr/local/lib
+RUN ldconfig /usr/local/lib
 
 COPY kernel_patch_verify /usr/bin/kernel_patch_verify
 
