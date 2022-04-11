@@ -124,5 +124,3 @@ if [ "$INSTALL_GCC" == "1" ]; then
 else
 	echo "Skipping install GCC. INSTALL_GCC!=1. make sure that /opt/cross-gcc-linux-9/bin has aarch64-none-linux-gnu- and arm-none-linux-gnueabihf-"
 fi
-
-rm $0
