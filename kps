@@ -31,17 +31,9 @@ else
 	CCACHEDIR=`ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3`
 fi
 
-TMP_PREFIX="kernel_patch_verify_kps"
-
-TMP_PASSWD=`mktemp -t $TMP_PREFIX.passwd.XXXXXX`
-TMP_GRP=`mktemp -t $TMP_PREFIX.grp.XXXXXX`
 USER_ID=`id -u`
 GROUP_ID=`id -g`
-getent group  $(id -gn) > $TMP_GRP
-getent passwd $(id -un) > $TMP_PASSWD
 
-DOCKER_MOUNT_DIRS+="-v $TMP_PASSWD:/etc/passwd:ro "
-DOCKER_MOUNT_DIRS+="-v $TMP_GRP:/etc/group:ro "
 DOCKER_MOUNT_DIRS+="-v /tmp:/tmp "
 DOCKER_MOUNT_DIRS+="-v /opt:/opt "
 DOCKER_MOUNT_DIRS+="-v $CCACHEDIR:/ccache "
@@ -53,9 +45,17 @@ if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
 	DOCKER_MOUNT_DIRS+=" -v	$GIT_WORKTREE_COMMONDIR:$GIT_WORKTREE_COMMONDIR "
 fi
 
+# Run our image to add our swuser
+docker run "$IMG_NAME" /bin/bash -c "groupadd -r swuser -g $GROUP_ID && useradd -u $USER_ID -r -g swuser -d /workdir -s /sbin/nologin -c \"Docker kernel patch user\" swuser"
+# Get the container ID of the last run container (above)
+CONTAINER_ID=`docker ps -lq`
+# Commit the container state (returns an image_id with sha256: prefix cut off)
+IMAGE_ID=`docker commit $CONTAINER_ID | cut -c8-`
+
 export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-10/bin/
 
 # If we wanted to get to bash shell:
-docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMG_NAME" bash --init-file /etc/profile
+docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMAGE_ID" bash --init-file /etc/profile
 
-rm -f $TMP_GRP $TMP_PASSWD
+# TODO: we can reuse this image for future runs, for now just clean up after ourselves
+docker rmi $IMAGE_ID

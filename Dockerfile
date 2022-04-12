@@ -1,7 +1,6 @@
 ARG BASE_DISTRO=debian:stable-slim
 FROM $BASE_DISTRO
 
-ARG USER_UID=1000
 ARG INSTALL_GCC=0
 
 # In case of Proxy based environment, leave the following enabled.
@@ -67,7 +66,6 @@ RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
 FROM $BASE_DISTRO
 
-ARG USER_UID=1000
 ARG INSTALL_GCC=0
 
 # Publish the source repository
@@ -77,11 +75,6 @@ LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_ver
 # COPY proxy-configuration/ /
 # RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
 #--- END START
-
-# Add an ordinary user - This is not going to change
-RUN mkdir -p /workdir && groupadd -r swuser -g $USER_UID && \
-useradd -u $USER_UID -r -g swuser -d /workdir -s /sbin/nologin -c "Docker kernel patch user" swuser && \
-chown -R swuser:swuser /workdir && mkdir /ccache && chown -R swuser:swuser /ccache
 
 # Add our llvm repo configs
 COPY llvm-config /
@@ -148,6 +141,4 @@ RUN ldconfig /usr/local/lib
 
 COPY kernel_patch_verify /usr/bin/kernel_patch_verify
 
-
-USER swuser
 WORKDIR /workdir
