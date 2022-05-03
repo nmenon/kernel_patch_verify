@@ -734,7 +734,7 @@ usage() {
 	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
 	echo -e "\t-L Use llvm to build 'LLVM=1 CC='$ccache clang''" >&2
 	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
-	echo -e "\t-c defconfig:_name (default uses current .config + olddefconfig)" >&2
+	echo -e "\t-c defconfig: name (default uses current .config + olddefconfig)" >&2
 	echo -e "\t-[1..9]: test the tip of current branch (1 to 9 number of patches)" >&2
 	echo -e "\t-n N: test the tip of current branch with 'N' number of patches" >&2
 	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
@@ -996,7 +996,7 @@ if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" == "$BASE_BRANCH" ]; then
 fi
 
 if [ ! -e ".config" -a -z "$DEFCONFIG" ]; then
-	usage "No default .config exists.."
+	usage "No default .config exists nor is a defconfig specified with -c"
 	exit 3
 fi
 
