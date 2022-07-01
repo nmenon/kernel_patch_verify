@@ -778,7 +778,7 @@ usage() {
 
 ORIDE=0
 DTB_NOSKIP=0
-while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	case $opt in
 	j)
 		CPUS=$OPTARG
