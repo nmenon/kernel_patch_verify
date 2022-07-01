@@ -641,7 +641,7 @@ report_end() {
 	log_marker "Application versions"
 	for app in $APPS_NEEDED
 	do
-		if [ "$app" == "smatch" ]; then
+		if [ "$app" = "smatch" ]; then
 			app=$SMATCH
 		fi
 		echo "version of $app:" >>$LOG_FILE
@@ -882,7 +882,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 			exit 1;
 		fi
 		PATCHCOUNT=$OPTARG
-		if [ x"$PATCHCOUNT" == x0 ]; then
+		if [ x"$PATCHCOUNT" = x0 ]; then
 			usage "Hey! Do your own '0' patch testing!!!"
 			exit 1;
 		fi
@@ -1003,7 +1003,7 @@ fi
 if [ -n "$BASE_BRANCH" -a -z "$TEST_BRANCH" ]; then
 	TEST_BRANCH=$CURRENT_BRANCH
 fi
-if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" == "$BASE_BRANCH" ]; then
+if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
 	usage "Test branch and base branch are the same '$TEST_BRANCH'.. Hmm.. not sleeping lately?"
 	exit 3
 fi
