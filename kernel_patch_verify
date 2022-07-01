@@ -641,6 +641,9 @@ report_end() {
 	log_marker "Application versions"
 	for app in $APPS_NEEDED
 	do
+		if [ "$app" == "smatch" ]; then
+			app=$SMATCH
+		fi
 		echo "version of $app:" >>$LOG_FILE
 		(which $app 2>&1) >> $LOG_FILE
 		($app --version 2>&1) >> $LOG_FILE
@@ -725,7 +728,7 @@ APP_NAME=$0
 # Help
 usage() {
 	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] -U -Z" >&2
+	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" >&2
 	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
 	echo -e "\t-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" >&2
 	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
@@ -743,6 +746,7 @@ usage() {
 	echo -e "\t-U : Do u-boot basic sanity tests" >&2
 	echo -e "\t-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" >&2
 	echo -e "\t-m : maximum line length number to be passed on to checkpatch.pl" >&2
+	echo -e "\t-S smatch_script : Provide a custom smatch_script instead of creating our own" >&2
 	echo >&2
 	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
 	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
@@ -916,6 +920,9 @@ while getopts "n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	m)
 		LINE_LENGTH=$OPTARG
 	;;
+	S)
+		SMATCH=$OPTARG
+	;;
 	\?)
 		usage "Invalid option: -$OPTARG"
 		exit 1
@@ -1030,9 +1037,11 @@ trap on_exit EXIT SIGINT SIGTERM
 
 mkdir -p $TEST_DIR $PATCHD
 cp .config $TEST_DIR/.config 2>/dev/null
-SMATCH=$TEST_DIR/smatch
-echo -e '#!/bin/bash\nsmatch -p=kernel $@'> $SMATCH
-chmod +x $SMATCH
+if [ -z "$SMATCH" ]; then
+	SMATCH=$TEST_DIR/smatch
+	echo -e '#!/bin/bash\nsmatch -p=kernel $@'> $SMATCH
+	chmod +x $SMATCH
+fi
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
