@@ -76,7 +76,9 @@ download_build_install_smatch()
 	URL="https://repo.or.cz/smatch.git"
 	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
-	make -j $NPROC PREFIX=/usr/local install
+	make -j $NPROC PREFIX=/usr/local/smatch install
+	echo -e '#!/bin/bash\n/usr/local/smatch/bin/smatch -p=kernel $@'>/usr/local/smatch/bin/k_sm_check_script
+	chmod +x /usr/local/smatch/bin/k_sm_check_script
 	cd /tmp
 	rm -rf /tmp/smatch
 }
