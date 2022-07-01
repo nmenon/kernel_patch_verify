@@ -696,6 +696,12 @@ check_missing_application() {
 	APPS_MISSING=""
 	for i in $APPS_NEEDED
 	do
+		if [ "$i" = "smatch" ]; then
+			i=`cat $SMATCH|grep smatch|cut -d ' ' -f1`
+			if [ -z "$i" ]; then
+				i=smatch
+			fi
+		fi
 		which "$i" > /dev/null
 		if [ $? -ne 0 ]; then
 			APPS_MISSING="$APPS_MISSING $i"
