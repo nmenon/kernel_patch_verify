@@ -1,2 +1,2 @@
-deb [signed-by=/etc/apt/sources.list.d/llvm-snapshot.gpg.key] http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye main
-deb-src [signed-by=/etc/apt/sources.list.d/llvm-snapshot.gpg.key] http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye main
+deb [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye main
+deb-src [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye main
