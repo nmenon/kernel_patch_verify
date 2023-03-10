@@ -265,6 +265,10 @@ dtest_dtbs_check() {
 
 ###################
 # Basic build test
+btest_mrproper() {
+	kmake mrproper 1>&2
+}
+
 btest_basic() {
 	test_files=`get_sorted_existing_files $*`
 	if [ -n "$test_files" ]; then
@@ -340,7 +344,7 @@ build_all() {
 # executed in sequence
 tests_start() {
 	echo "Running start tests.."
-	TESTS_ALL_SET="defconfig"
+	TESTS_ALL_SET="btest_mrproper defconfig"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		if [ $UBOOT_TESTING -eq 0 ]; then
