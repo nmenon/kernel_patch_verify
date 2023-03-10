@@ -76,8 +76,6 @@ LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_ver
 # RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
 #--- END START
 
-# Add our llvm repo configs
-COPY llvm-config /
 
 ARG DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
@@ -124,11 +122,16 @@ RUN apt-get update && \
         yamllint \
         swig \
         python3 \
-        python3-ruamel.yaml \
+        python3-ruamel.yaml
+
+# Add our llvm repo configs
+COPY llvm-config /
+RUN apt-get update && apt-get install -y --no-install-recommends\
         llvm \
         clang \
-        lld && \
-    apt-get clean && \
+        lld
+
+RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
