@@ -29,6 +29,9 @@ if [ -z "ccache" ]; then
 	CCACHEDIR=/tmp/ccache
 else
 	CCACHEDIR=`ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3`
+	if [ -z "$CCACHEDIR"]; then
+		CCACHEDIR=`ccache -v -s|grep -i "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ':' -f2`
+	fi
 fi
 
 USER_ID=`id -u`
