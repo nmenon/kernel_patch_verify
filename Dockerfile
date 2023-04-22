@@ -122,6 +122,7 @@ RUN apt-get update && \
         yamllint \
         swig \
         python3 \
+        python3-dev \
         python3-ruamel.yaml
 
 # Add our llvm repo configs

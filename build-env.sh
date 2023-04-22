@@ -6,9 +6,9 @@ shopt -s expand_aliases
 NPROC=`nproc`
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.40.r0
+export GIT_TAG=2.40.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
-export DTC_TAG=v1.6.1
+export DTC_TAG=v1.7.0
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
 export SPARSE_TAG=v0.6.4
 # https://repo.or.cz/smatch.git
@@ -43,7 +43,7 @@ download_build_install_python_deps()
 	python -m pip install --upgrade setuptools
 	python -m pip install --upgrade six jsonschema
 	# scripts/spdxcheck.py dependencies
-	python -m pip install --upgrade ply gitpython yamllint rfc3987
+	python -m pip install --upgrade ply gitpython yamllint rfc3987 pylibfdt
 	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 }
 
@@ -53,8 +53,7 @@ download_build_install_dtc()
 	URL="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
 	git clone --depth=1 --branch "$DTC_TAG" "$URL"
 	cd /tmp/dtc
-#make -j $NPROC PREFIX=/usr SETUP_PREFIX=/usr install NO_PYTHON=1
-	make -j $NPROC PREFIX=/usr/local SETUP_PREFIX=/usr/local install
+	make -j $NPROC PREFIX=/usr/local SETUP_PREFIX=/usr/local install NO_PYTHON=1
 	cd /tmp
 	rm -rf /tmp/dtc
 }
@@ -74,7 +73,7 @@ download_build_install_smatch()
 {
 	cd /tmp/
 	URL="https://repo.or.cz/smatch.git"
-	git clone --branch "$SMATCH_TAG" "$URL"
+	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
 	make -j $NPROC PREFIX=/usr/local/smatch install
 	echo -e '#!/bin/bash\n/usr/local/smatch/bin/smatch -p=kernel $@'>/usr/local/smatch/bin/k_sm_check_script
