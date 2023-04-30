@@ -266,7 +266,7 @@ dtest_dtbs_check() {
 ###################
 # Basic build test
 btest_mrproper() {
-	kmake mrproper 1>&2
+	kmake mrproper 1>/dev/null
 }
 
 btest_basic() {
