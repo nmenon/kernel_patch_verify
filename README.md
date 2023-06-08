@@ -3,6 +3,8 @@ kernel_patch_verify
 
 Linux kernel patch static verification helper tool
 
+[![Kernel Patch Verify Intro video](https://img.youtube.com/vi/HzW4DrDj32w/0.jpg)](https://www.youtube.com/watch?v=HzW4DrDj32w "Kernel Patch Verify Intro video")
+
 Background and Motivation:
 =========================
 
