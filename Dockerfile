@@ -46,8 +46,8 @@ RUN apt-get update && \
         ocaml-native-compilers \
         libpcre-ocaml-dev \
         libparmap-ocaml-dev \
-        libpython3.9 \
-        libpython3.9-dev \
+        libpython3.11 \
+        libpython3.11-dev \
         libgmp-dev \
         libmpc-dev \
         diffstat \
