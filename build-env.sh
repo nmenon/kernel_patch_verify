@@ -39,12 +39,12 @@ download_build_install_git()
 download_build_install_python_deps()
 {
 	# Get latest pip
-	python -m pip install --upgrade pip
-	python -m pip install --upgrade setuptools
-	python -m pip install --upgrade six jsonschema
+	python -m pip install --upgrade  --break-system-packages pip
+	python -m pip install --upgrade  --break-system-packages setuptools
+	python -m pip install --upgrade  --break-system-packages six jsonschema
 	# scripts/spdxcheck.py dependencies
-	python -m pip install --upgrade ply gitpython yamllint rfc3987 pylibfdt
-	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
+	python -m pip install --upgrade  --break-system-packages ply gitpython yamllint rfc3987 pylibfdt
+	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 }
 
 download_build_install_dtc()
