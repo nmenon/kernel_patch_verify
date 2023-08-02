@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Run tests
         run: |
@@ -45,7 +45,7 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Build image
         run: docker build --build-arg BASE_DISTRO=debian:stable-slim --build-arg USER_UID=1000 --build-arg INSTALL_GCC=0 . --file Dockerfile --tag $IMAGE_NAME
