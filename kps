@@ -55,7 +55,7 @@ CONTAINER_ID=`docker ps -lq`
 # Commit the container state (returns an image_id with sha256: prefix cut off)
 IMAGE_ID=`docker commit $CONTAINER_ID | cut -c8-`
 
-export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-10/bin/
+export PATH=/workdir/scripts/dtc/:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/opt/cross-gcc-linux-13/bin/:/opt/cross-gcc-linux-12/bin/:/opt/cross-gcc-linux-11/bin/:/opt/cross-gcc-linux-10/bin/:/opt/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-9/bin/:/usr/local/cross-gcc-linux-10/bin/
 
 # If we wanted to get to bash shell:
 docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMAGE_ID" bash --init-file /etc/profile
