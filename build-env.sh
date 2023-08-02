@@ -16,7 +16,7 @@ export SMATCH_TAG=master
 # https://github.com/coccinelle/coccinelle/tags
 export COCCI_TAG=1.1.1
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2023.06.1
+export DTSCHEMA_REV=v2023.07
 
 ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
 
