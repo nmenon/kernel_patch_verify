@@ -183,11 +183,7 @@ ytest_dtbs_check() {
 		if [ -z "$test_files" ]; then
 			return
 		fi
-		for test_file in $test_files
-		do
-			D=`dirname $test_file`
-			rm -f $D/*.dtb $D/*.yaml
-		done
+		rm -f $test_files
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
 		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*"|sort -u) 1>&2
