@@ -869,7 +869,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	[1-9])
 		TEST_TOP=yes
-		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${PATCH_DIR}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -$opt with other options"
 			exit 1;
 		fi
@@ -877,7 +877,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	n)
 		TEST_TOP=yes
-		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${PATCH_DIR}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -n with other options"
 			exit 1;
 		fi
@@ -889,7 +889,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	p)
 		PATCH_DIR=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${TEST_TOP}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -p with other options"
 			exit 1;
 		fi
@@ -906,14 +906,14 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	b)
 		BASE_BRANCH=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+		if [ -n "${TEST_TOP}${PATCH_DIR}" ]; then
 			usage "cannot use -b with other options"
 			exit 1;
 		fi
 	;;
 	t)
 		TEST_BRANCH=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+		if [ -n "${TEST_TOP}${PATCH_DIR}" ]; then
 			usage "cannot use -t with other options"
 			exit 1;
 		fi
@@ -957,7 +957,7 @@ fi
 
 GN=`git config --get user.name`
 GE=`git config --get user.email`
-if [ -z "$GE" -o -z "$GN" ]; then
+if [ -z "$GE" ] || [ -z "$GN" ]; then
 	echo "We need to know who you are to proceed, please check 'git config -l' and fix via:"
 	echo 'git config --global user.email "you@example.com"'
 	echo 'git config --global user.name "Your Name"'
@@ -1027,7 +1027,7 @@ fi
 
 GIT_RM_DIR=`git rev-parse --git-path rebase-merge`
 GIT_RA_DIR=`git rev-parse --git-path rebase-apply`
-if [ -e "$GIT_RM_DIR" -o -e "$GIT_RA_DIR" ]; then
+if [ -e "$GIT_RM_DIR" ] || [ -e "$GIT_RA_DIR" ]; then
 	usage "$GIT_RA_DIR or $GIT_RM_DIR exists - implying rebase or am in progress. please cleanup to proceed - 'git am --abort;git rebase --abort' perhaps?"
 	exit 3
 fi
