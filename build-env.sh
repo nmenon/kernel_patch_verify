@@ -3,7 +3,7 @@ set -e
 export HOME=/tmp
 source /etc/profile
 shopt -s expand_aliases
-NPROC=`nproc`
+NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
 export GIT_TAG=2.43.0
