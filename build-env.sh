@@ -49,15 +49,21 @@ download_build_install_python_deps()
 	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 }
 
+clone_and_cd()
+{
+	cd /tmp &&
+	git clone --depth=1 --branch "$1" "$2" "$3" &&
+	cd /tmp/"$3"
+	return $?
+}
+
 download_build_install_dtc()
 {
 	local FILE URL
 	FILE='dtc'
 	URL="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
 
-	cd /tmp/
-	git clone --depth=1 --branch "$DTC_TAG" "$URL" "$FILE"
-	cd /tmp/"$FILE"
+	clone_and_cd "$DTC_TAG" "$URL" "$FILE"
 	make -j "$NPROC" PREFIX=/usr/local SETUP_PREFIX=/usr/local install NO_PYTHON=1
 	cd /tmp
 	rm -rf /tmp/"$FILE"
@@ -69,9 +75,7 @@ download_build_install_sparse()
 	FILE='sparse'
 	URL="https://git.kernel.org/pub/scm/devel/sparse/sparse.git"
 
-	cd /tmp/
-	git clone --depth=1 --branch "$SPARSE_TAG" "$URL" "$FILE"
-	cd /tmp/"$FILE"
+	clone_and_cd "$SPARSE_TAG" "$URL" "$FILE"
 	make -j "$NPROC" PREFIX=/usr/local install
 	cd /tmp
 	rm -rf /tmp/"$FILE"
@@ -83,9 +87,7 @@ download_build_install_smatch()
 	FILE='smatch'
 	URL="https://repo.or.cz/smatch.git"
 
-	cd /tmp/
-	git clone --depth=1 --branch "$SMATCH_TAG" "$URL" "$FILE"
-	cd /tmp/"$FILE"
+	clone_and_cd "$SMATCH_TAG" "$URL" "$FILE"
 	make -j "$NPROC" PREFIX=/usr/local/smatch install
 	echo -e '#!/bin/bash\n/usr/local/smatch/bin/smatch -p=kernel $@'>/usr/local/smatch/bin/k_sm_check_script
 	chmod +x /usr/local/smatch/bin/k_sm_check_script
@@ -99,9 +101,7 @@ download_build_install_coccinelle()
 	FILE='coccinelle'
 	URL="https://github.com/coccinelle/coccinelle.git"
 
-	cd /tmp/
-	git clone --depth=1 --branch "$COCCI_TAG" "$URL" "$FILE"
-	cd /tmp/"$FILE"
+	clone_and_cd "$COCCI_TAG" "$URL" "$FILE"
 	./autogen
 	./configure --prefix=/usr/local
 	make install
