@@ -67,7 +67,7 @@ else
 		export GIT_PROXY_HOST=`echo "$http_proxy"|cut -d ':' -f1`
 		export GIT_PROXY_PORT=`echo "$http_proxy"|cut -d ':' -f2`
 	fi
-	exec $CORKSCREW $GIT_PROXY_HOST $GIT_PROXY_PORT $*
+	exec $CORKSCREW $GIT_PROXY_HOST $GIT_PROXY_PORT "$@"
 fi
 
 
