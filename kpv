@@ -21,7 +21,7 @@ fi
 # If we are working off docker image from github container reg, make sure
 # we have the latest.
 if [ "$IMG_NAME" = "ghcr.io/nmenon/arm-kernel-dev" ]; then
-	docker pull $IMG_NAME
+	docker pull "$IMG_NAME"
 fi
 ccache=$(which ccache)
 if [ -z "$ccache" ]; then
@@ -39,15 +39,16 @@ fi
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-DOCKER_MOUNT_DIRS+="-v /tmp:/tmp "
-DOCKER_MOUNT_DIRS+="-v /opt:/opt "
-DOCKER_MOUNT_DIRS+="-v $CCACHEDIR:/ccache "
-DOCKER_MOUNT_DIRS+="-v $(pwd):/workdir "
+DOCKER_MOUNT_DIRS=()
+DOCKER_MOUNT_DIRS+=(-v /tmp:/tmp)
+DOCKER_MOUNT_DIRS+=(-v /opt:/opt)
+DOCKER_MOUNT_DIRS+=(-v "$CCACHEDIR":/ccache)
+DOCKER_MOUNT_DIRS+=(-v "$(pwd)":/workdir)
 
 # Mount parent directory if its a worktree
 GIT_WORKTREE_COMMONDIR=$(git rev-parse --git-common-dir)
 if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
-	DOCKER_MOUNT_DIRS+=" -v	$GIT_WORKTREE_COMMONDIR:$GIT_WORKTREE_COMMONDIR "
+	DOCKER_MOUNT_DIRS+=(-v "$GIT_WORKTREE_COMMONDIR":"$GIT_WORKTREE_COMMONDIR")
 fi
 
 # Run our image to add our swuser
@@ -55,11 +56,11 @@ docker run "$IMG_NAME" /bin/bash -c "groupadd -r swuser -g $GROUP_ID && useradd 
 # Get the container ID of the last run container (above)
 CONTAINER_ID=$(docker ps -lq)
 # Commit the container state (returns an image_id with sha256: prefix cut off)
-IMAGE_ID=$(docker commit $CONTAINER_ID | cut -c8-)
+IMAGE_ID=$(docker commit "$CONTAINER_ID" | cut -c8-)
 
 export PATH=/workdir/scripts/dtc:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/opt/cross-gcc-linux-13/bin:/opt/cross-gcc-linux-12/bin:/opt/cross-gcc-linux-11/bin:/opt/cross-gcc-linux-10/bin:/opt/cross-gcc-linux-9/bin:/usr/local/cross-gcc-linux-9/bin:/usr/local/cross-gcc-linux-10/bin
 
-docker run --rm -ti --user $USER_ID:$GROUP_ID -e PATH $DOCKER_MOUNT_DIRS "$IMAGE_ID"  kernel_patch_verify -S /usr/local/smatch/bin/k_sm_check_script "$@"
+docker run --rm -ti --user "$USER_ID":"$GROUP_ID" -e PATH "${DOCKER_MOUNT_DIRS[@]}" "$IMAGE_ID" kernel_patch_verify -S /usr/local/smatch/bin/k_sm_check_script "$@"
 
 # TODO: we can reuse this image for future runs, for now just clean up after ourselves
-docker rmi $IMAGE_ID
+docker rmi "$IMAGE_ID"
