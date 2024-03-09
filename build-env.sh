@@ -53,7 +53,7 @@ download_build_install_dtc()
 	URL="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
 	git clone --depth=1 --branch "$DTC_TAG" "$URL"
 	cd /tmp/dtc
-	make -j $NPROC PREFIX=/usr/local SETUP_PREFIX=/usr/local install NO_PYTHON=1
+	make -j "$NPROC" PREFIX=/usr/local SETUP_PREFIX=/usr/local install NO_PYTHON=1
 	cd /tmp
 	rm -rf /tmp/dtc
 }
@@ -64,7 +64,7 @@ download_build_install_sparse()
 	URL="https://git.kernel.org/pub/scm/devel/sparse/sparse.git"
 	git clone --depth=1 --branch "$SPARSE_TAG" "$URL"
 	cd /tmp/sparse
-	make -j $NPROC PREFIX=/usr/local install
+	make -j "$NPROC" PREFIX=/usr/local install
 	cd /tmp
 	rm -rf /tmp/sparse
 }
@@ -75,7 +75,7 @@ download_build_install_smatch()
 	URL="https://repo.or.cz/smatch.git"
 	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
-	make -j $NPROC PREFIX=/usr/local/smatch install
+	make -j "$NPROC" PREFIX=/usr/local/smatch install
 	echo -e '#!/bin/bash\n/usr/local/smatch/bin/smatch -p=kernel $@'>/usr/local/smatch/bin/k_sm_check_script
 	chmod +x /usr/local/smatch/bin/k_sm_check_script
 	cd /tmp
