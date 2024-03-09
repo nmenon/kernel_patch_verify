@@ -543,7 +543,7 @@ on_exit() {
 		echo "restoring .config"
 		cp $TEST_DIR/.config .config
 	fi
-	if [ -n "$TEST_DIR" -a -d "$TEST_DIR" ]; then
+	if [ -n "$TEST_DIR" ] && [ -d "$TEST_DIR" ]; then
 		echo "Removing temp dir"
 		rm -rf $TEST_DIR 2>/dev/null
 	fi
@@ -590,7 +590,7 @@ report_tests() {
 		start_log=$TEST_DIR/$test-start
 		end_log=$TEST_DIR/$test-end
 		diff_log=$TEST_DIR/$test-diff
-		if [ -f $start_log -a -f $end_log ]; then
+		if [ -f $start_log ] && [ -f $end_log ]; then
 			diff -purN  $start_log $end_log > $diff_log
 		fi
 	done
@@ -797,24 +797,24 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 		ORIDE=1
 	;;
 	d)
-		if [ -z "$LLVM" -a -z "$CROSS_COMPILE" ]; then
+		if [ -z "$LLVM" ] && [ -z "$CROSS_COMPILE" ]; then
 			export CROSS_COMPILE="$DEF_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
 			export ARCH="$DEF_ARCH"
 		fi
-		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -z "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_BUILDTARGETS"
 		fi
 	;;
 	V)
-		if [ -z "$LLVM" -a -z "$CROSS_COMPILE" ]; then
+		if [ -z "$LLVM" ] && [ -z "$CROSS_COMPILE" ]; then
 			export CROSS_COMPILE="$DEF_V8_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
 			export ARCH="$DEF_V8_ARCH"
 		fi
-		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -z "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_V8_BUILDTARGETS"
 		fi
 	;;
@@ -828,7 +828,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	U)
 		DEF_BUILDTARGETS=""
-		if [ -n "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -n "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS=""
 		fi
 		if [ -n "$COMPLETE_TESTS" ]; then
@@ -940,7 +940,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	esac
 done
 
-if [ -z "$TEST_BRANCH" -a -z "$BASE_BRANCH" -a -z "$PATCH_DIR" -a -z "$TEST_TOP" ]; then
+if [ -z "${TEST_BRANCH}${BASE_BRANCH}${PATCH_DIR}${TEST_TOP}" ]; then
 	usage "Need at least 1 test type"
 	exit 2
 fi
@@ -996,19 +996,19 @@ KDIR=`pwd`
 
 CURRENT_BRANCH=`git branch | grep '^*' | cut -d " " -f 2`
 # if we have base or testing branch missing, populate the other as the current branch
-if [ -n "$TEST_BRANCH" -a -z "$BASE_BRANCH" ]; then
+if [ -n "$TEST_BRANCH" ] && [ -z "$BASE_BRANCH" ]; then
 	BASE_BRANCH=$CURRENT_BRANCH
 fi
 
-if [ -n "$BASE_BRANCH" -a -z "$TEST_BRANCH" ]; then
+if [ -n "$BASE_BRANCH" ] && [ -z "$TEST_BRANCH" ]; then
 	TEST_BRANCH=$CURRENT_BRANCH
 fi
-if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
+if [ -n "$TEST_BRANCH" ] && [ "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
 	usage "Test branch and base branch are the same '$TEST_BRANCH'.. Hmm.. not sleeping lately?"
 	exit 3
 fi
 
-if [ ! -e ".config" -a -z "$DEFCONFIG" ]; then
+if [ ! -e ".config" ] && [ -z "$DEFCONFIG" ]; then
 	usage "No default .config exists nor is a defconfig specified with -c"
 	exit 3
 fi
