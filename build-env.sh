@@ -105,7 +105,7 @@ download_build_install_coccinelle()
 	rm -rf /tmp/coccinelle
 }
 
-download_and_install_armgcc()
+download_and_install_armgcc_64()
 {
 	cd /tmp
 	mkdir -p /opt/cross-gcc-linux-9/
@@ -115,7 +115,12 @@ download_and_install_armgcc()
 	aria2c "${ARIA_OPTS[@]}" -o "$F64" "$URL"
 	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$F64"
 	rm -f "$F64"
+}
 
+download_and_install_armgcc_32()
+{
+	cd /tmp
+	mkdir -p /opt/cross-gcc-linux-9/
 	#arch32
 	F32='aarch32-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
@@ -131,7 +136,8 @@ download_build_install_smatch
 download_build_install_sparse
 download_build_install_coccinelle
 if [ "$INSTALL_GCC" == "1" ]; then
-	download_and_install_armgcc
+	download_and_install_armgcc_64
+	download_and_install_armgcc_32
 else
 	echo "Skipping install GCC. INSTALL_GCC!=1. make sure that /opt/cross-gcc-linux-9/bin has aarch64-none-linux-gnu- and arm-none-linux-gnueabihf-"
 fi
