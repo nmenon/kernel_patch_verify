@@ -18,14 +18,14 @@ export COCCI_TAG=1.1.1
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2023.11
 
-ARIA_OPTS="--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10"
+ARIA_OPTS=(--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10)
 
 download_build_install_git()
 {
 	cd /tmp/
 	FILE=git-"$GIT_TAG".tar.gz
 	URL="https://git.kernel.org/pub/scm/git/git.git/snapshot/${FILE}"
-	aria2c $ARIA_OPTS -o "$FILE" "$URL"
+	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
 	mkdir /tmp/git
 	tar -C /tmp/git --strip-components=1 -xvf "$FILE"
 	rm $FILE
@@ -102,14 +102,14 @@ download_and_install_armgcc()
 	#aarch64
 	F64='aarch64-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz?revision=61c3be5d-5175-4db6-9030-b565aae9f766&la=en&hash=0A37024B42028A9616F56A51C2D20755C5EBBCD7"
-	aria2c $ARIA_OPTS -o "$F64" "$URL"
+	aria2c "${ARIA_OPTS[@]}" -o "$F64" "$URL"
 	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$F64"
 	rm -f "$F64"
 
 	#arch32
 	F32='aarch32-gcc.tar.xz'
 	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
-	aria2c $ARIA_OPTS -o "$F32" "$URL"
+	aria2c "${ARIA_OPTS[@]}" -o "$F32" "$URL"
 	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$F32"
 	rm -f "$F32"
 }
