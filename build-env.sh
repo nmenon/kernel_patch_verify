@@ -22,9 +22,11 @@ ARIA_OPTS=(--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10)
 
 download_build_install_git()
 {
-	cd /tmp/
+	local FILE URL
 	FILE=git-"$GIT_TAG".tar.gz
 	URL="https://git.kernel.org/pub/scm/git/git.git/snapshot/${FILE}"
+
+	cd /tmp/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
 	mkdir /tmp/git
 	tar -C /tmp/git --strip-components=1 -xvf "$FILE"
@@ -49,8 +51,10 @@ download_build_install_python_deps()
 
 download_build_install_dtc()
 {
-	cd /tmp/
+	local URL
 	URL="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
+
+	cd /tmp/
 	git clone --depth=1 --branch "$DTC_TAG" "$URL"
 	cd /tmp/dtc
 	make -j "$NPROC" PREFIX=/usr/local SETUP_PREFIX=/usr/local install NO_PYTHON=1
@@ -60,8 +64,10 @@ download_build_install_dtc()
 
 download_build_install_sparse()
 {
-	cd /tmp/
+	local URL
 	URL="https://git.kernel.org/pub/scm/devel/sparse/sparse.git"
+
+	cd /tmp/
 	git clone --depth=1 --branch "$SPARSE_TAG" "$URL"
 	cd /tmp/sparse
 	make -j "$NPROC" PREFIX=/usr/local install
@@ -71,8 +77,10 @@ download_build_install_sparse()
 
 download_build_install_smatch()
 {
-	cd /tmp/
+	local URL
 	URL="https://repo.or.cz/smatch.git"
+
+	cd /tmp/
 	git clone --depth=1 --branch "$SMATCH_TAG" "$URL"
 	cd /tmp/smatch
 	make -j "$NPROC" PREFIX=/usr/local/smatch install
@@ -84,8 +92,10 @@ download_build_install_smatch()
 
 download_build_install_coccinelle()
 {
-	cd /tmp/
+	local URL
 	URL="https://github.com/coccinelle/coccinelle.git"
+
+	cd /tmp/
 	git clone --depth=1 --branch "$COCCI_TAG" "$URL"
 	cd /tmp/coccinelle
 	./autogen
