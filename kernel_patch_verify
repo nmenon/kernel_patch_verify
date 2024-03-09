@@ -733,54 +733,65 @@ APP_NAME=$0
 ###################
 # Help
 usage() {
-	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" >&2
-	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
-	echo -e "\t-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" >&2
-	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
-	echo -e "\t-B build_target: override default build target and use provided build_target" >&2
-	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
-	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
-	echo -e "\t-L Use llvm to build 'LLVM=1 CC='$ccache clang''" >&2
-	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
-	echo -e "\t-c defconfig: name (default uses current .config + olddefconfig)" >&2
-	echo -e "\t-[1..9]: test the tip of current branch (1 to 9 number of patches)" >&2
-	echo -e "\t-n N: test the tip of current branch with 'N' number of patches" >&2
-	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
-	echo -e "\t-b base_branch: test patches from base_branch" >&2
-	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
-	echo -e "\t-U : Do u-boot basic sanity tests" >&2
-	echo -e "\t-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" >&2
-	echo -e "\t-m : maximum line length number to be passed on to checkpatch.pl" >&2
-	echo -e "\t-S smatch_script : Provide a custom smatch_script instead of creating our own" >&2
-	echo >&2
-	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
-	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
-	echo >&2
-	echo "Example usage 1: verify last commmitted patch" >&2
-	echo -e "\t $APP_NAME -1" >&2
-	echo "Example usage 2: verify on top of current branch patches from location ~/tmp/test-patches" >&2
-	echo -e "\t $APP_NAME -p ~/tmp/test-patches" >&2
-	echo "Example usage 3: verify *from* branch 'base_branch' till current branch" >&2
-	echo -e "\t $APP_NAME -b base_branch" >&2
-	echo "Example usage 4: verify from current branch, all patches *until* 'test_branch'" >&2
-	echo -e "\t $APP_NAME -t test_branch" >&2
-	echo "Example usage 5: verify from branch, all patches from 'base_branch' until 'test_branch'" >&2
-	echo -e "\t $APP_NAME -b base_branch -t test_branch" >&2
-	echo "Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" >&2
-	echo -e "\t $APP_NAME -b base_branch -t test_branch -C" >&2
-	echo >&2
-	echo "Example for usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" >&2
-	echo -e "\t $APP_NAME -B bzImage -1" >&2
-	echo "Example for usage 7: on a cross_compiled ARM build using defaults, 1 patch" >&2
-	echo -e "\t $APP_NAME -d -1" >&2
-	echo "Example for usage 8: on a cross_compiled ARM build using defaults,15 patches" >&2
-	echo -e "\t $APP_NAME -d -n 15" >&2
-	
+	printf '%s\n' "$*"
+
+	printf '%s\n' \
+		'' \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		''
+
+	printf '\t%s\n' \
+		"-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" \
+		"-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" \
+		"-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" \
+		"-B build_target: override default build target and use provided build_target" \
+		"-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" \
+		"-l logfile: report file (defaults to $DEFAULT_LOG)" \
+		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
+		"-C: run Complete tests(WARNING: could take significant time!)" \
+		"-c defconfig: name (default uses current .config + olddefconfig)" \
+		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
+		"-n N: test the tip of current branch with 'N' number of patches" \
+		"-p patch_dir: which directory to take patches from (expects sorted in order)" \
+		"-b base_branch: test patches from base_branch" \
+		"-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" \
+		"-U : Do u-boot basic sanity tests" \
+		"-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" \
+		"-m : maximum line length number to be passed on to checkpatch.pl" \
+		"-S smatch_script : Provide a custom smatch_script instead of creating our own"
+
+	printf '%s\n' \
+		'' \
+		"NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" \
+		"NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" \
+		''
+
+	printf '%s\n\t%s\n' \
+		"Example usage 1: verify last commmitted patch" \
+		"$APP_NAME -1" \
+		"Example usage 2: verify on top of current branch patches from location ~/tmp/test-patches" \
+		"$APP_NAME -p ~/tmp/test-patches" \
+		"Example usage 3: verify *from* branch 'base_branch' till current branch" \
+		"$APP_NAME -b base_branch" \
+		"Example usage 4: verify from current branch, all patches *until* 'test_branch'" \
+		"$APP_NAME -t test_branch" \
+		"Example usage 5: verify from branch, all patches from 'base_branch' until 'test_branch'" \
+		"$APP_NAME -b base_branch -t test_branch" \
+		"Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" \
+		"$APP_NAME -b base_branch -t test_branch -C" \
+		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
+		"$APP_NAME -B bzImage -1" \
+		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
+		"$APP_NAME -d -1" \
+		"Example usage 8: on a cross_compiled ARM build using defaults,15 patches" \
+		"$APP_NAME -d -n 15"
+
+	printf '%s\n' ''
+
 	if ! check_missing_application; then
 		recommend_missing_application
 	fi
-}
+} >&2
 
 ORIDE=0
 DTB_NOSKIP=0
