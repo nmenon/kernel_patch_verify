@@ -125,7 +125,7 @@ ptest_am() {
 }
 
 ptest_check() {
-	($KDIR/scripts/checkpatch.pl --strict $1 --max-line-length=$LINE_LENGTH |grep -v $(basename $1)|grep -v "^$"|grep -v "^total"|grep -v "^NOTE:")1>&2
+	($KDIR/scripts/checkpatch.pl --strict $1 --max-line-length=$LINE_LENGTH |grep -v $(basename $1)|grep -v '^$'|grep -v '^total'|grep -v '^NOTE:')1>&2
 }
 
 ###################
@@ -186,7 +186,7 @@ ytest_dtbs_check() {
 		rm -f $test_files
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*"|sort -u) 1>&2
+		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v '^\s\s*'|sort -u) 1>&2
 	fi
 }
 
@@ -210,7 +210,7 @@ dtest_build_dtb() {
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$"|grep -v "$DTB_FILTER_LIST") 1>&2
+		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v '^make$'|grep -v "$DTB_FILTER_LIST") 1>&2
 	fi
 }
 
@@ -255,7 +255,7 @@ dtest_dtbs_check() {
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*"|sort -u) 1>&2
+		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v '^\s\s*'|sort -u) 1>&2
 	fi
 }
 
@@ -269,14 +269,14 @@ btest_basic() {
 	test_files=$(get_sorted_existing_files $*)
 	if [ -n "$test_files" ]; then
 		rm $test_files
-		(((kmake_single $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$") 1>&2
+		(((kmake_single $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v '^make$') 1>&2
 	fi
 }
 
 btest_sparse() {
 	test_files=$(get_sorted_existing_files $*)
 	if [ -n "$test_files" ]; then
-		(((kmake_single C=2 $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) |grep -v "^mv$" |grep -v "^make$" | grep -v "__ksymtab" 1>&2
+		(((kmake_single C=2 $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) |grep -v '^mv$' |grep -v '^make$' | grep -v '__ksymtab' 1>&2
 	fi
 }
 
@@ -316,7 +316,7 @@ btest_kbuild() {
 	else
 		kmake C=1 $KP_TARGETS $MODULES>/dev/null 2>$TEST_DIR/err_stuff
 		# Get rid of standard sparse mess with u-boot
-		cat $TEST_DIR/err_stuff|grep -v "efi.h"|grep -v "version.c" |grep -v "_u_boot_list_" 1>&2
+		cat $TEST_DIR/err_stuff|grep -v 'efi.h'|grep -v 'version.c' |grep -v '_u_boot_list_' 1>&2
 	fi
 }
 
@@ -404,10 +404,10 @@ report_tests_end() {
 
 test_patch() {
 	patch=$1
-	cfiles=$(diffstat -lp1 $patch|grep -P "\.c$"|sort)
-	ofiles=$(diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g")
-	yfiles=$(diffstat -lp1 $patch|grep -P "\.yaml$"|sort)
-	dfiles=$(diffstat -lp1 $patch|grep "boot/dts"|grep -v Makefile|sort)
+	cfiles=$(diffstat -lp1 $patch|grep -P '\.c$'|sort)
+	ofiles=$(diffstat -lp1 $patch|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")
+	yfiles=$(diffstat -lp1 $patch|grep -P '\.yaml$'|sort)
+	dfiles=$(diffstat -lp1 $patch|grep 'boot/dts'|grep -v 'Makefile'|sort)
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -518,7 +518,7 @@ test_patch() {
 }
 
 report_patch() {
-	Subject=$(grep "^Subject" $1)
+	Subject=$(grep '^Subject' $1)
 	log_marker "::test results START " $(basename $1) "::"
 	log_me "Subject: $Subject"
 	echo -en "\n"$(basename $1) "Tests: ">>$LOG_SUMMARY_FILE
@@ -650,7 +650,7 @@ report_end() {
 		echo >>$LOG_FILE
 	done
 	echo "version of dtschema python3 package:" >>$LOG_FILE
-	python3 -m pip list|grep dtschema >> $LOG_FILE
+	python3 -m pip list|grep 'dtschema' >> $LOG_FILE
 	echo >>$LOG_FILE
 
 	log_marker
@@ -667,7 +667,7 @@ report_end() {
 			# Colored reporting to ensure people dont miss errors
 			# See http://misc.flogisoft.com/bash/tip_colors_and_formatting
 			if [ $empty -gt 2 ]; then
-				pass=$(echo $ln|grep "Passed(ALL)")
+				pass=$(echo $ln|grep 'Passed(ALL)')
 				if [ -z "$pass" ]; then
 					# Red back, white foreground
 					echo -e "\e[1m\e[97m\e[101m$ln\e[0m"
@@ -697,7 +697,7 @@ check_missing_application() {
 	for i in $APPS_NEEDED
 	do
 		if [ "$i" = "smatch" ]; then
-			i=$(cat $SMATCH|grep smatch|cut -d ' ' -f1)
+			i=$(cat $SMATCH|grep 'smatch'|cut -d ' ' -f1)
 			if [ -z "$i" ]; then
 				i=smatch
 			fi
@@ -928,7 +928,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 			usage "cannot use -t with other options"
 			exit 1;
 		fi
-		CHECK=$(git branch|grep $TEST_BRANCH 2>/dev/null)
+		CHECK=$(git branch|grep "$TEST_BRANCH" 2>/dev/null)
 		if [ -z "$CHECK" ]; then
 			usage "Test branch $TEST_BRANCH does not exist?"
 			exit 1
@@ -1004,7 +1004,7 @@ if [ -z "$TEST_B_DIR" ]; then
 fi
 KDIR=$(pwd)
 
-CURRENT_BRANCH=$(git branch | grep '^*' | cut -d " " -f 2)
+CURRENT_BRANCH=$(git branch | grep '^\*' | cut -d " " -f 2)
 # if we have base or testing branch missing, populate the other as the current branch
 if [ -n "$TEST_BRANCH" ] && [ -z "$BASE_BRANCH" ]; then
 	BASE_BRANCH=$CURRENT_BRANCH
