@@ -22,7 +22,7 @@ if [ "$IMG_NAME" = "ghcr.io/nmenon/arm-kernel-dev" ]; then
 	docker pull $IMG_NAME
 fi
 ccache=`which ccache`
-if [ -z "ccache" ]; then
+if [ -z "$ccache" ]; then
 	if [ ! -d "/tmp/ccache" ]; then
 		mkdir /tmp/ccache
 	fi
