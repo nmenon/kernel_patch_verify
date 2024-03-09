@@ -908,9 +908,9 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 			usage "Patch Directory $PATCH_DIR does not exist?"
 			exit 1;
 		fi
-		PATCHES=$(ls $PATCH_DIR/*.patch|grep -v "$COVER_LETTER"|xargs realpath)
-		PATCHCOUNT=$(ls $PATCHES|wc -l)
-		if [ $PATCHCOUNT -eq 0 ]; then
+		PATCHES=$(realpath "$PATCH_DIR"/*.patch|grep -v "$COVER_LETTER")
+		PATCHCOUNT=$(echo "$PATCHES" |wc -l)
+		if [ "$PATCHCOUNT" -eq 0 ]; then
 			usage "Patch directory $PATCH_DIR has no patches?"
 			exit 1;
 		fi
@@ -1061,7 +1061,7 @@ fi
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
-	if ! [[ x$PATCHCOUNT =~ ^x[0-9]+$ ]] ; then
+	if ! [[ "$PATCHCOUNT" =~ ^[0-9]+$ ]] ; then
 		usage "error: requested number of patches '$PATCHCOUNT' Not a number"
 		exit 4
 	fi
@@ -1077,8 +1077,8 @@ fi
 
 if [ -n "$TEST_BRANCH" ]; then
 	git format-patch --no-cover-letter -M -C -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
-	PATCHES=$(realpath $PATCHD/*.patch|grep -v "$COVER_LETTER")
-	PATCHCOUNT=$(ls $PATCHES|wc -l)
+	PATCHES=$(realpath "$PATCHD"/*.patch|grep -v "$COVER_LETTER")
+	PATCHCOUNT=$(echo "$PATCHES" |wc -l)
 	if [ $PATCHCOUNT -eq 0 ]; then
 		usage "$BASE_BRANCH..$TEST_BRANCH generated no patches!"
 		exit 4;
@@ -1098,8 +1098,8 @@ START_SEC=$(date "+%s")
 #=========== MAIN TEST TRIGGER LOOP =========
 tests_start
 
-PATCHES=$(realpath $PATCHD/*.patch|grep -v "$COVER_LETTER")
-PATCHCOUNT=$(ls $PATCHES|wc -l)
+PATCHES=$(realpath "$PATCHD"/*.patch|grep -v "$COVER_LETTER")
+PATCHCOUNT=$(echo "$PATCHES" |wc -l)
 PATCH_NUM=1
 EST_TOTAL="unknown"
 ETA_REMAIN="unknown"
