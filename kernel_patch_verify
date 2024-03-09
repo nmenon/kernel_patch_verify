@@ -702,8 +702,8 @@ check_missing_application() {
 				i=smatch
 			fi
 		fi
-		which "$i" > /dev/null
-		if [ $? -ne 0 ]; then
+		
+		if ! which "$i" > /dev/null; then
 			APPS_MISSING="$APPS_MISSING $i"
 		fi
 	done
@@ -776,8 +776,8 @@ usage() {
 	echo -e "\t $APP_NAME -d -1" >&2
 	echo "Example for usage 8: on a cross_compiled ARM build using defaults,15 patches" >&2
 	echo -e "\t $APP_NAME -d -n 15" >&2
-	check_missing_application
-	if [ $? -ne 0 ]; then
+	
+	if ! check_missing_application; then
 		recommend_missing_application
 	fi
 }
@@ -949,8 +949,7 @@ if [ -n "${CROSS_COMPILE}" ]; then
 	APPS_NEEDED="$APPS_NEEDED ${CROSS_COMPILE}gcc"
 fi
 
-check_missing_application
-if [ $? -ne 0 ]; then
+if ! check_missing_application; then
 	usage "Missing apps"
 	exit 2
 fi
