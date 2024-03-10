@@ -47,9 +47,13 @@ DOCKER_MOUNT_DIRS+=(-v /opt:/opt)
 DOCKER_MOUNT_DIRS+=(-v "$CCACHEDIR":/ccache)
 DOCKER_MOUNT_DIRS+=(-v "$(pwd)":/workdir)
 
+# Check if current directory is a git directory
+if ! GIT_WORKTREE_COMMONDIR=$(git rev-parse --git-common-dir); then
+	exit 1
+fi
+
 # Mount parent directory if its a worktree
-GIT_WORKTREE_COMMONDIR=$(git rev-parse --git-common-dir)
-if [[ $GIT_WORKTREE_COMMONDIR != ".git" ]]; then
+if [ "$GIT_WORKTREE_COMMONDIR" != ".git" ]; then
 	DOCKER_MOUNT_DIRS+=(-v "$GIT_WORKTREE_COMMONDIR":"$GIT_WORKTREE_COMMONDIR")
 fi
 
