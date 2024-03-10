@@ -13,7 +13,8 @@ all:
 
 clean:
 	docker container prune; \
-	docker image ls|grep none|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3|xargs docker rmi ${IMAGE_TOBUILD}
+	docker image prune -f; \
+	docker rmi ${IMAGE_TOBUILD} 
 
 deploy:
 	docker push ${REPO}:${IMAGE_TOBUILD}
