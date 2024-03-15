@@ -282,7 +282,7 @@ btest_sparse() {
 btest_smatch() {
 	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
 	if [ -n "${test_files[*]}" ]; then
-		kmake_single CHECK="$SMATCH" C=2 "${test_files[@]}" | egrep '(warn|error):' 1>&2
+		kmake_single CHECK="$SMATCH" C=2 "${test_files[@]}" | grep -E '(warn|error):' 1>&2
 	fi
 }
 
