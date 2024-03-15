@@ -184,7 +184,7 @@ ytest_dtbs_check() {
 		fi
 		rm -f "${test_files[@]}"
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
 	fi
 }
@@ -208,7 +208,7 @@ dtest_build_dtb() {
 			rm -f "$D"/*.dtb
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		( ( ( kmake_single W=2 dtbs > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$'|grep -v "$DTB_FILTER_LIST" ) 1>&2
 	fi
 }
@@ -225,7 +225,7 @@ dtest_build_dtb_to_dts() {
 			rm -f "$D"/*.dtb
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		(kmake_single W=2 dtbs > /dev/null) 2>/dev/null
 		TEST_DTBS_FULL=""
 		for test_file in $test_files
@@ -253,7 +253,7 @@ dtest_dtbs_check() {
 			rm -f "$D"/*.dtb "$D"/*.yaml
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
 	fi
 }
