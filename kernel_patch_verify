@@ -892,7 +892,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 			exit 1;
 		fi
 		PATCHCOUNT=$OPTARG
-		if [ x"$PATCHCOUNT" = x0 ]; then
+		if [ "$PATCHCOUNT" -eq 0 ]; then
 			usage "Hey! Do your own '0' patch testing!!!"
 			exit 1;
 		fi
