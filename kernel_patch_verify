@@ -175,7 +175,7 @@ ytest_dtbs_check() {
 		fi
 
 		# Re-Build all the dtbs to get a list (Ignore log)
-		kmake dtbs 2>&1 >/dev/null
+		kmake dtbs > /dev/null 2>&1
 
 		all_dtb_files=$(find . -iname '*.dtb')
 		readarray -t test_files <<< "$(get_sorted_existing_files "$all_dtb_files")"
