@@ -565,21 +565,21 @@ on_exit() {
 log_marker() {
 	MARKER_STRING="================"
 	if [ "$*" ]; then
-		echo "$MARKER_STRING" >> "$LOG_FILE"
-		echo "$*" >> "$LOG_FILE"
-		echo -e "$MARKER_STRING\n" >> "$LOG_FILE"
+		echo "$MARKER_STRING"
+		echo "$*"
+		echo -e "$MARKER_STRING\n"
 	else
-		echo -e "$MARKER_STRING\n\n" >> "$LOG_FILE"
+		echo -e "$MARKER_STRING\n\n"
 	fi
-}
+} >> "$LOG_FILE"
 
 log_me() {
-	echo "$*" >> "$LOG_FILE"
-}
+	echo "$*"
+} >> "$LOG_FILE"
 
 logs_me() {
-	echo  -e "$*" >> "$LOG_SUMMARY_FILE"
-}
+	echo  -e "$*"
+} >> "$LOG_SUMMARY_FILE"
 
 report_tests() {
 	TESTS=$*
@@ -638,19 +638,21 @@ report_end() {
 
 	log_marker "CPUS used: $CPUS"
 	log_marker "Application versions"
-	for app in $APPS_NEEDED
-	do
-		if [ "$app" = "smatch" ]; then
-			app=$SMATCH
-		fi
-		echo "version of $app:" >> "$LOG_FILE"
-		(which "$app" 2>&1) >> "$LOG_FILE"
-		("$app" --version 2>&1) >> "$LOG_FILE"
-		echo >> "$LOG_FILE"
-	done
-	echo "version of dtschema python3 package:" >> "$LOG_FILE"
-	python3 -m pip list|grep 'dtschema' >> "$LOG_FILE"
-	echo >> "$LOG_FILE"
+	{
+		for app in $APPS_NEEDED
+		do
+			if [ "$app" = "smatch" ]; then
+				app=$SMATCH
+			fi
+			echo "version of $app:"
+			which "$app" 2>&1
+			"$app" --version 2>&1
+			echo
+		done
+		echo "version of dtschema python3 package:"
+		python3 -m pip list|grep 'dtschema'
+		echo
+	} >> "$LOG_FILE"
 
 	log_marker
 	END_DATE=$(date)
