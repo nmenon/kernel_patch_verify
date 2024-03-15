@@ -103,7 +103,7 @@ run_test_dummy() {
 
 get_sorted_existing_files()
 {
-	test_files=""
+	test_files=()
 	# If there are no files, then there is nothing to sort.. return empty
 	if [ -z "$*" ]; then
 		echo
@@ -112,10 +112,10 @@ get_sorted_existing_files()
 	for i in $( (ls -d "$@" 2>/dev/null) | sort)
 	do
 		if [ -f "$i" ]; then
-			test_files="$test_files $i"
+			test_files+=("$i")
 		fi
 	done
-	echo "$test_files"
+	printf '%s\n' "${test_files[@]}"
 }
 
 ###################
@@ -131,31 +131,30 @@ ptest_check() {
 ###################
 # Basic tests to run on the files impacted by the patch
 ftest_check_kdoc() {
-	test_files=$(get_sorted_existing_files $*)
-
-	if [ -n "$test_files" ]; then
-		( ( ( "$KDIR"/scripts/kernel-doc "$test_files" >/dev/null ) 2>&1 ) | cut -d ':' -f1,3- ) 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		( ( ( "$KDIR"/scripts/kernel-doc "${test_files[@]}" >/dev/null ) 2>&1 ) | cut -d ':' -f1,3- ) 1>&2
 	fi
 }
 
 ftest_check_includes() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		"$KDIR"/scripts/checkincludes.pl "$test_files" 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		"$KDIR"/scripts/checkincludes.pl "${test_files[@]}" 1>&2
 	fi
 }
 
 ftest_check_headerdeps() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		"$KDIR"/scripts/headerdep.pl "$test_files" 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		"$KDIR"/scripts/headerdep.pl "${test_files[@]}" 1>&2
 	fi
 }
 
 ytest_dt_binding_check() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
-		test_files=$(get_sorted_existing_files $*)
-		for test_file in $test_files
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		for test_file in "${test_files[@]}"
 		do
 			# If adding a new file
 			if [ -f "$test_file" ]; then
@@ -179,11 +178,11 @@ ytest_dtbs_check() {
 		kmake dtbs 2>&1 >/dev/null
 
 		all_dtb_files=$(find . -iname '*.dtb')
-		test_files=$(get_sorted_existing_files $all_dtb_files)
-		if [ -z "$test_files" ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$all_dtb_files")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		rm -f "$test_files"
+		rm -f "${test_files[@]}"
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
 		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
@@ -196,8 +195,8 @@ ytest_dtbs_check() {
 DTB_FILTER_LIST="property_name_chars_strict"
 dtest_build_dtb() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
-		test_files=$(get_sorted_existing_files $*)
-		if [ -z "$test_files" ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
 		if [ "$DTB_NOSKIP" -eq 1 ]; then
@@ -216,11 +215,11 @@ dtest_build_dtb() {
 
 dtest_build_dtb_to_dts() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
-		test_files=$(get_sorted_existing_files $*)
-		if [ -z "$test_files" ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		for test_file in $test_files
+		for test_file in "${test_files[@]}"
 		do
 			D=$(dirname "$test_file")
 			rm -f "$D"/*.dtb
@@ -244,11 +243,11 @@ dtest_build_dtb_to_dts() {
 
 dtest_dtbs_check() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
-		test_files=$(get_sorted_existing_files $*)
-		if [ -z "$test_files" ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		for test_file in $test_files
+		for test_file in "${test_files[@]}"
 		do
 			D=$(dirname "$test_file")
 			rm -f "$D"/*.dtb "$D"/*.yaml
@@ -266,31 +265,31 @@ btest_mrproper() {
 }
 
 btest_basic() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		rm "$test_files"
-		( ( ( kmake_single "$test_files" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$' ) 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		rm "${test_files[@]}"
+		( ( ( kmake_single "${test_files[@]}" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$' ) 1>&2
 	fi
 }
 
 btest_sparse() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		( ( ( kmake_single C=2 "$test_files" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- ) |grep -v '^mv$' |grep -v '^make$' | grep -v '__ksymtab' 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		( ( ( kmake_single C=2 "${test_files[@]}" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- ) |grep -v '^mv$' |grep -v '^make$' | grep -v '__ksymtab' 1>&2
 	fi
 }
 
 btest_smatch() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		kmake_single CHECK="$SMATCH" C=2 "$test_files" | egrep '(warn|error):' 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		kmake_single CHECK="$SMATCH" C=2 "${test_files[@]}" | egrep '(warn|error):' 1>&2
 	fi
 }
 
 btest_cocci() {
-	test_files=$(get_sorted_existing_files $*)
-	if [ -n "$test_files" ]; then
-		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report "$test_files" >/dev/null
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report "${test_files[@]}" >/dev/null
 	fi
 }
 
