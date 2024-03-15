@@ -1121,6 +1121,3 @@ done
 tests_end
 report_tests_end
 report_end
-
-#=========== COMPLETE - let the cleanup handler clean things =========
-exit 0
