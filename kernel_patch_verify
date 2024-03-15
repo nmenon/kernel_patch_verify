@@ -662,9 +662,9 @@ report_end() {
 	if [ -f "$LOG_SUMMARY_FILE" ]; then
 		echo -e "\e[106m\e[4m\e[1mTest Summary:\e[0m"
 		fail=0
-		while read ln
+		while read -r ln
 		do
-			empty=$(echo "$ln" |wc -c)
+			empty=${#ln}
 			# Colored reporting to ensure people dont miss errors
 			# See http://misc.flogisoft.com/bash/tip_colors_and_formatting
 			if [ "$empty" -gt 2 ]; then
