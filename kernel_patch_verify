@@ -26,7 +26,7 @@
 source /etc/profile
 shopt -s expand_aliases
 
-ccache=`which ccache`
+ccache=$(which ccache)
 
 # We would rather that we hit cache more often, than rebuild..
 # See https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=87c94bfb8ad354fb43d2caf870d7ca0b3f98dab3
@@ -48,7 +48,7 @@ DEF_V8_BUILDTARGETS="Image dtbs"
 APPS_NEEDED="perl make dtc sparse patch git realpath basename"
 
 # Use all max num CPUs
-DEF_CPUS=`grep -c '^processor' /proc/cpuinfo`
+DEF_CPUS=$(grep -c '^processor' /proc/cpuinfo)
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
@@ -66,11 +66,11 @@ if [ -z "$KP_TARGETS" ]; then
 fi
 
 kmake_single() {
-	make "$KM_A" $KP_PARAMS "$KM_C" $KM_L -j1 $*
+	make "$KM_A" "$KP_PARAMS" "$KM_C" "$KM_L" -j1 "$@"
 }
 
 kmake() {
-	make "$KM_A" $KP_PARAMS "$KM_C" $KM_L -j$KM_CPUS $*
+	make "$KM_A" "$KP_PARAMS" "$KM_C" "$KM_L" -j"$KM_CPUS" "$@"
 }
 
 ###################
@@ -83,10 +83,10 @@ run_test() {
 	TEST=$1
 	shift
 	echo -e "\tRunning test: $TEST ($LOG_EXT)"
-	SSEC=`date "+%s"`
-	eval $TEST $* 2>$LOG_DIR/$TEST-$LOG_EXT
-	ESEC=`date "+%s"`
-	DELTA=`expr $ESEC - $SSEC`
+	SSEC=$(date "+%s")
+	"$TEST" "$@" 2> "$LOG_DIR/$TEST-$LOG_EXT"
+	ESEC=$(date "+%s")
+	DELTA=$((ESEC - SSEC))
 	echo "$DELTA seconds: completed $TEST"
 }
 
@@ -98,95 +98,94 @@ run_test_dummy() {
 	TEST=$1
 	shift
 	echo -e "\tRunning test: $TEST ($LOG_EXT)"
-	touch $LOG_DIR/$TEST-$LOG_EXT
+	touch "$LOG_DIR/$TEST-$LOG_EXT"
 }
 
 get_sorted_existing_files()
 {
-	test_files=""
+	test_files=()
 	# If there are no files, then there is nothing to sort.. return empty
 	if [ -z "$*" ]; then
 		echo
 		return
 	fi
-	for i in `(ls -d $* 2>/dev/null) | sort`
+	for i in $( (ls -d "$@" 2>/dev/null) | sort)
 	do
 		if [ -f "$i" ]; then
-			test_files="$test_files $i"
+			test_files+=("$i")
 		fi
 	done
-	echo $test_files
+	printf '%s\n' "${test_files[@]}"
 }
 
 ###################
 # Basic tests to run on the patch itself
 ptest_am() {
-	git am $1 >/dev/null
+	git am "$1" >/dev/null
 }
 
 ptest_check() {
-	($KDIR/scripts/checkpatch.pl --strict $1 --max-line-length=$LINE_LENGTH |grep -v `basename $1`|grep -v "^$"|grep -v "^total"|grep -v "^NOTE:")1>&2
+	( "$KDIR"/scripts/checkpatch.pl --strict "$1" --max-line-length="$LINE_LENGTH" |grep -v "$(basename "$1")" |grep -v '^$'|grep -v '^total'|grep -v '^NOTE:' )1>&2
 }
 
 ###################
 # Basic tests to run on the files impacted by the patch
 ftest_check_kdoc() {
-	test_files=`get_sorted_existing_files $*`
-
-	if [ -n "$test_files" ]; then
-		((($KDIR/scripts/kernel-doc $test_files >/dev/null) 2>&1)|cut -d ':' -f1,3-) 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		( ( ( "$KDIR"/scripts/kernel-doc "${test_files[@]}" >/dev/null ) 2>&1 ) | cut -d ':' -f1,3- ) 1>&2
 	fi
 }
 
 ftest_check_includes() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		$KDIR/scripts/checkincludes.pl $test_files 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		"$KDIR"/scripts/checkincludes.pl "${test_files[@]}" 1>&2
 	fi
 }
 
 ftest_check_headerdeps() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		$KDIR/scripts/headerdep.pl $test_files 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		"$KDIR"/scripts/headerdep.pl "${test_files[@]}" 1>&2
 	fi
 }
 
 ytest_dt_binding_check() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
-		test_files=`get_sorted_existing_files $*`
-		for test_file in $test_files
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		for test_file in "${test_files[@]}"
 		do
 			# If adding a new file
 			if [ -f "$test_file" ]; then
 				rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-				D=`dirname $test_file`
-				rm -f $D/*.example.*
-				kmake_single dt_binding_check DT_CHECKER_FLAGS=-m DT_SCHEMA_FILES=$test_file>/dev/null
+				D=$(dirname "$test_file")
+				rm -f "$D"/*.example.*
+				kmake_single dt_binding_check DT_CHECKER_FLAGS=-m DT_SCHEMA_FILES="$test_file" >/dev/null
 			fi
 		done
 	fi
 }
 
 ytest_dtbs_check() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		# If we have no yamls to check, nothing to run.
 		if [ -z "$*" ]; then
 			return
 		fi
 
 		# Re-Build all the dtbs to get a list (Ignore log)
-		kmake dtbs 2>&1 >/dev/null
+		kmake dtbs > /dev/null 2>&1
 
-		all_dtb_files=`find . -iname *.dtb`
-		test_files=`get_sorted_existing_files $all_dtb_files`
-		if [ -z "$test_files" ]; then
+		all_dtb_files=$(find . -iname '*.dtb')
+		readarray -t test_files <<< "$(get_sorted_existing_files "$all_dtb_files")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		rm -f $test_files
+		rm -f "${test_files[@]}"
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*"|sort -u) 1>&2
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
+		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
 	fi
 }
 
@@ -195,9 +194,9 @@ ytest_dtbs_check() {
 #	by default unless -Z is used.
 DTB_FILTER_LIST="property_name_chars_strict"
 dtest_build_dtb() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
-		test_files=`get_sorted_existing_files $*`
-		if [ -z "$test_files" ]; then
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
 		if [ "$DTB_NOSKIP" -eq 1 ]; then
@@ -205,57 +204,57 @@ dtest_build_dtb() {
 		fi
 		for test_file in $test_files
 		do
-			D=`dirname $test_file`
-			rm -f $D/*.dtb
+			D=$(dirname "$test_file")
+			rm -f "$D"/*.dtb
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((kmake_single W=2 dtbs > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$"|grep -v "$DTB_FILTER_LIST") 1>&2
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
+		( ( ( kmake_single W=2 dtbs > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$'|grep -v "$DTB_FILTER_LIST" ) 1>&2
 	fi
 }
 
 dtest_build_dtb_to_dts() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
-		test_files=`get_sorted_existing_files $*`
-		if [ -z "$test_files" ]; then
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		for test_file in $test_files
+		for test_file in "${test_files[@]}"
 		do
-			D=`dirname $test_file`
-			rm -f $D/*.dtb
+			D=$(dirname "$test_file")
+			rm -f "$D"/*.dtb
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		(kmake_single W=2 dtbs > /dev/null) 2>/dev/null
 		TEST_DTBS_FULL=""
 		for test_file in $test_files
 		do
-			D=`dirname $test_file`
-			TEST_DTBS=`ls $D/*.dtb`
-			TEST_DTBS_FULL=`echo $TEST_DTBS_FULL $TEST_DTBS| tr ' ' '\n'|sort -u`
+			D=$(dirname "$test_file")
+			TEST_DTBS=$(ls "$D"/*.dtb)
+			TEST_DTBS_FULL=$(echo "$TEST_DTBS_FULL" "$TEST_DTBS" | tr ' ' '\n'|sort -u)
 		done
 		for dtb in $TEST_DTBS_FULL
 		do
-			dtc -I dtb -O dts $dtb >/dev/null
+			dtc -I dtb -O dts "$dtb" >/dev/null
 		done
 	fi
 }
 
 dtest_dtbs_check() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
-		test_files=`get_sorted_existing_files $*`
-		if [ -z "$test_files" ]; then
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
+		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+		if [ -z "${test_files[*]}" ]; then
 			return
 		fi
-		for test_file in $test_files
+		for test_file in "${test_files[@]}"
 		do
-			D=`dirname $test_file`
-			rm -f $D/*.dtb $D/*.yaml
+			D=$(dirname "$test_file")
+			rm -f "$D"/*.dtb "$D"/*.yaml
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
-		find Documentation/devicetree -iname "*.example.*"|xargs rm -f 2>/dev/null >/dev/null
-		(((make -j$KM_CPUS dtbs_check > /dev/null) 2>&1)|grep -v "^\s\s*"|sort -u) 1>&2
+		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
+		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
 	fi
 }
 
@@ -266,31 +265,31 @@ btest_mrproper() {
 }
 
 btest_basic() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		rm $test_files
-		(((kmake_single $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4- | grep -v "^make$") 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		rm "${test_files[@]}"
+		( ( ( kmake_single "${test_files[@]}" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$' ) 1>&2
 	fi
 }
 
 btest_sparse() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		(((kmake_single C=2 $test_files > /dev/null) 2>&1)|cut -d ':' -f1,4-) |grep -v "^mv$" |grep -v "^make$" | grep -v "__ksymtab" 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		( ( ( kmake_single C=2 "${test_files[@]}" > /dev/null ) 2>&1 )|cut -d ':' -f1,4- ) |grep -v '^mv$' |grep -v '^make$' | grep -v '__ksymtab' 1>&2
 	fi
 }
 
 btest_smatch() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		kmake_single CHECK="$SMATCH" C=2 $test_files | egrep '(warn|error):' 1>&2
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		kmake_single CHECK="$SMATCH" C=2 "${test_files[@]}" | grep -E '(warn|error):' 1>&2
 	fi
 }
 
 btest_cocci() {
-	test_files=`get_sorted_existing_files $*`
-	if [ -n "$test_files" ]; then
-		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report $test_files >/dev/null
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -n "${test_files[*]}" ]; then
+		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report "${test_files[@]}" >/dev/null
 	fi
 }
 
@@ -311,30 +310,30 @@ btest_headers_check() {
 }
 
 btest_kbuild() {
-	if [ $UBOOT_TESTING -eq 0 ]; then
-		kmake C=1 $KP_TARGETS $MODULES>/dev/null
+	if [ "$UBOOT_TESTING" -eq 0 ]; then
+		kmake C=1 "$KP_TARGETS" "$MODULES" > /dev/null
 	else
-		kmake C=1 $KP_TARGETS $MODULES>/dev/null 2>$TEST_DIR/err_stuff
+		kmake C=1 "$KP_TARGETS" "$MODULES" > /dev/null 2> "$TEST_DIR"/err_stuff
 		# Get rid of standard sparse mess with u-boot
-		cat $TEST_DIR/err_stuff|grep -v "efi.h"|grep -v "version.c" |grep -v "_u_boot_list_" 1>&2
+		printf '%s\n' "$(< "$TEST_DIR"/err_stuff)"|grep -v 'efi.h'|grep -v 'version.c' |grep -v '_u_boot_list_' 1>&2
 	fi
 }
 
 defconfig() {
 	if [ -n "$DEFCONFIG" ]; then
-		kmake $DEFCONFIG >/dev/null
+		kmake "$DEFCONFIG" >/dev/null
 	else
-		cp $TEST_DIR/.config .config
+		cp "$TEST_DIR"/.config .config
 		kmake olddefconfig >/dev/null
 	fi
 }
 
 build_all_clean() {
 	(kmake clean 2>/dev/null )>/dev/null
-	kmake_single $KP_TARGETS $MODULES >/dev/null
+	kmake_single "$KP_TARGETS" "$MODULES" >/dev/null
 }
 build_all() {
-	(kmake $KP_TARGETS $MODULES 2>/dev/null) >/dev/null
+	(kmake "$KP_TARGETS" "$MODULES" 2>/dev/null) >/dev/null
 }
 
 # executed in sequence
@@ -352,19 +351,19 @@ tests_start() {
 
 	for test_s in $TESTS_ALL_SET
 	do
-		run_test start $TEST_DIR $test_s
+		run_test start "$TEST_DIR" "$test_s"
 	done
 	# Run parallel tests
 	PIDS=""
 	for test_s in $TESTS_ALL1_SET
 	do
-		run_test start $TEST_DIR $test_s &
+		run_test start "$TEST_DIR" "$test_s" &
 		PIDS="$PIDS $!"
 	done
 	echo "Waiting for PIDs: $PIDS"
 	for pid in $PIDS
 	do
-		wait $pid
+		wait "$pid"
 	done
 	PIDS=""
 
@@ -377,37 +376,37 @@ tests_end() {
 	echo "Running END tests.."
 	for test_s in $TESTS_ALL_SET
 	do
-		run_test end $TEST_DIR $test_s
+		run_test end "$TEST_DIR" "$test_s"
 	done
 
 	# Run parallel tests
 	PIDS=""
 	for test_s in $TESTS_ALL1_SET
 	do
-		run_test start $TEST_DIR $test_s &
+		run_test start "$TEST_DIR" "$test_s" &
 		PIDS="$PIDS $!"
 	done
 	echo "Waiting for PIDs: $PIDS"
 	for pid in $PIDS
 	do
-		wait $pid
+		wait "$pid"
 	done
 	PIDS=""
 }
 
 report_tests_end() {
 	log_marker "::Complete test results START::"
-	echo -en "\nGeneral Tests: ">>$LOG_SUMMARY_FILE
-	report_tests $TESTS_ALL_SET $TESTS_ALL1_SET
+	echo -en "\nGeneral Tests: " >> "$LOG_SUMMARY_FILE"
+	report_tests "$TESTS_ALL_SET" "$TESTS_ALL1_SET"
 	log_marker "::Complete test results END::"
 }
 
 test_patch() {
 	patch=$1
-	cfiles=`diffstat -lp1 $patch|grep -P "\.c$"|sort`
-	ofiles=`diffstat -lp1 $patch|grep -P "\.[Sc]$"|sort|sed -e "s/[Sc]$/o/g"`
-	yfiles=`diffstat -lp1 $patch|grep -P "\.yaml$"|sort`
-	dfiles=`diffstat -lp1 $patch|grep "boot/dts"|grep -v Makefile|sort`
+	cfiles=$(diffstat -lp1 "$patch"|grep -P '\.c$'|sort)
+	ofiles=$(diffstat -lp1 "$patch"|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")
+	yfiles=$(diffstat -lp1 "$patch"|grep -P '\.yaml$'|sort)
+	dfiles=$(diffstat -lp1 "$patch"|grep 'boot/dts'|grep -v 'Makefile'|sort)
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -440,90 +439,90 @@ test_patch() {
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
 
-	run_test start $TEST_DIR defconfig
+	run_test start "$TEST_DIR" defconfig
 	# run twice - we just want end build errors..
-	run_test start $TEST_DIR btest_kbuild $ofiles
-	run_test start $TEST_DIR btest_kbuild $ofiles
+	run_test start "$TEST_DIR" btest_kbuild "$ofiles"
+	run_test start "$TEST_DIR" btest_kbuild "$ofiles"
 
 	for test_s in $TESTS_B_SET
 	do
-		run_test start $TEST_DIR $test_s $ofiles
+		run_test start "$TEST_DIR" "$test_s" "$ofiles"
 	done
 
 	for test_s in $TESTS_D_SET
 	do
-		run_test start $TEST_DIR $test_s $dfiles
+		run_test start "$TEST_DIR" "$test_s" "$dfiles"
 	done
 
 	for test_s in $TESTS_Y_SET
 	do
-		run_test start $TEST_DIR $test_s $yfiles
+		run_test start "$TEST_DIR" "$test_s" "$yfiles"
 	done
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
-		run_test start $TEST_DIR $test_s $cfiles &
+		run_test start "$TEST_DIR" "$test_s" "$cfiles" &
 		PIDS="$PIDS $!"
 	done
 
 	# wait for all to come back
-	echo Waiting for test PIDs: $PIDS
+	echo "Waiting for test PIDs: $PIDS"
 	for pid in $PIDS
 	do
-		wait $pid
+		wait "$pid"
 	done
 	PIDS=""
 
 	for test_s in $TESTS_P_SET
 	do
-		run_test_dummy start $TEST_DIR $test_s $patch
-		run_test end $TEST_DIR $test_s $patch
+		run_test_dummy start "$TEST_DIR" "$test_s" "$patch"
+		run_test end "$TEST_DIR" "$test_s" "$patch"
 	done
 
-	run_test end $TEST_DIR defconfig
+	run_test end "$TEST_DIR" defconfig
 	# run twice - we just want end build errors..
-	run_test end $TEST_DIR btest_kbuild $ofiles
-	run_test end $TEST_DIR btest_kbuild $ofiles
+	run_test end "$TEST_DIR" btest_kbuild "$ofiles"
+	run_test end "$TEST_DIR" btest_kbuild "$ofiles"
 
 	for test_s in $TESTS_B_SET
 	do
-		run_test end $TEST_DIR $test_s $ofiles
+		run_test end "$TEST_DIR" "$test_s" "$ofiles"
 	done
 
 	for test_s in $TESTS_D_SET
 	do
-		run_test end $TEST_DIR $test_s $dfiles
+		run_test end "$TEST_DIR" "$test_s" "$dfiles"
 	done
 
 	for test_s in $TESTS_Y_SET
 	do
-		run_test end $TEST_DIR $test_s $yfiles
+		run_test end "$TEST_DIR" "$test_s" "$yfiles"
 	done
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
-		run_test end $TEST_DIR $test_s $cfiles &
+		run_test end "$TEST_DIR" "$test_s" "$cfiles" &
 		PIDS="$PIDS $!"
 	done
 
 	# wait for all to come back
-	echo Waiting for test PIDs: $PIDS
+	echo "Waiting for test PIDs: $PIDS"
 	for pid in $PIDS
 	do
-		wait $pid
+		wait "$pid"
 	done
 	PIDS=""
 }
 
 report_patch() {
-	Subject=`grep "^Subject" $1`
-	log_marker "::test results START " `basename $1` "::"
+	Subject=$(grep '^Subject' "$1")
+	log_marker "::test results START " "$(basename "$1")" "::"
 	log_me "Subject: $Subject"
-	echo -en "\n"`basename $1` "Tests: ">>$LOG_SUMMARY_FILE
-	report_tests defconfig btest_kbuild $TESTS_C_SET $TESTS_B_SET $TESTS_P_SET $TESTS_Y_SET $TESTS_D_SET
-	log_marker "::test results END" `basename $1` "::"
+	echo -en "\n" "$(basename "$1")" "Tests: " >> "$LOG_SUMMARY_FILE"
+	report_tests defconfig btest_kbuild "$TESTS_C_SET" "$TESTS_B_SET" "$TESTS_P_SET" "$TESTS_Y_SET" "$TESTS_D_SET"
+	log_marker "::test results END" "$(basename "$1")" "::"
 }
 
 ###################
@@ -533,7 +532,7 @@ on_exit() {
 
 	if [ x != x"$PIDS" ]; then
 		echo "Killing $PIDS"
-		killall $PIDS 2>/dev/null
+		killall "$PIDS" 2>/dev/null
 	fi
 
 	if [ -n "$DEBUG_MODE" ]; then
@@ -541,22 +540,22 @@ on_exit() {
 	fi
 	if [ -f "$TEST_DIR/.config" ]; then
 		echo "restoring .config"
-		cp $TEST_DIR/.config .config
+		cp "$TEST_DIR"/.config .config
 	fi
-	if [ -n "$TEST_DIR" -a -d "$TEST_DIR" ]; then
+	if [ -n "$TEST_DIR" ] && [ -d "$TEST_DIR" ]; then
 		echo "Removing temp dir"
-		rm -rf $TEST_DIR 2>/dev/null
+		rm -rf "$TEST_DIR" 2>/dev/null
 	fi
 	if [ -n "$CURRENT_BRANCH" ]; then
 		echo "Restoring to $CURRENT_BRANCH branch"
 		git reset --hard 2>/dev/null
-		git checkout $CURRENT_BRANCH 2>/dev/null
+		git checkout "$CURRENT_BRANCH" 2>/dev/null
 	fi
 	if [ -n "$TEST_BRANCH_NAME" ]; then
-		bexists=`git branch|grep "$TEST_BRANCH_NAME" 2>/dev/null`
+		bexists=$(git branch|grep "$TEST_BRANCH_NAME" 2>/dev/null)
 		if [ -n "$bexists" ]; then
 			echo "Cleaning up testing branch"
-			git branch -D $TEST_BRANCH_NAME
+			git branch -D "$TEST_BRANCH_NAME"
 		fi
 	fi
 }
@@ -566,21 +565,21 @@ on_exit() {
 log_marker() {
 	MARKER_STRING="================"
 	if [ "$*" ]; then
-		echo "$MARKER_STRING">>$LOG_FILE
-		echo "$*">>$LOG_FILE
-		echo -e "$MARKER_STRING\n">>$LOG_FILE
+		echo "$MARKER_STRING"
+		echo "$*"
+		echo -e "$MARKER_STRING\n"
 	else
-		echo -e "$MARKER_STRING\n\n">>$LOG_FILE
+		echo -e "$MARKER_STRING\n\n"
 	fi
-}
+} >> "$LOG_FILE"
 
 log_me() {
-	echo "$*">>$LOG_FILE
-}
+	echo "$*"
+} >> "$LOG_FILE"
 
 logs_me() {
-	echo  -e "$*">>$LOG_SUMMARY_FILE
-}
+	echo  -e "$*"
+} >> "$LOG_SUMMARY_FILE"
 
 report_tests() {
 	TESTS=$*
@@ -590,8 +589,8 @@ report_tests() {
 		start_log=$TEST_DIR/$test-start
 		end_log=$TEST_DIR/$test-end
 		diff_log=$TEST_DIR/$test-diff
-		if [ -f $start_log -a -f $end_log ]; then
-			diff -purN  $start_log $end_log > $diff_log
+		if [ -f "$start_log" ] && [ -f "$end_log" ]; then
+			diff -purN "$start_log" "$end_log" > "$diff_log"
 		fi
 	done
 	FAIL_TEST=""
@@ -599,9 +598,9 @@ report_tests() {
 	for test in $TESTS
 	do
 		diff_log=$TEST_DIR/$test-diff
-		if [ -f $diff_log ]; then
-			size=`stat --format "%s" $diff_log`
-			if [ $size -ne 0 ]; then
+		if [ -f "$diff_log" ]; then
+			size=$(stat --format "%s" "$diff_log")
+			if [ "$size" -ne 0 ]; then
 				log_me "$test FAILED?"
 				PASS=0
 				FAIL_TEST="$FAIL_TEST $test"
@@ -611,16 +610,16 @@ report_tests() {
 		fi
 	done
 	if [ $PASS -eq 1 ]; then
-		log_me Passed: $TESTS
+		log_me Passed: "$TESTS"
 	else
 		for test in $TESTS
 		do
 			diff_log=$TEST_DIR/$test-diff
-			if [ -f $diff_log ]; then
-				size=`stat --format "%s" $diff_log`
-				if [ $size -ne 0 ]; then
+			if [ -f "$diff_log" ]; then
+				size=$(stat --format "%s" "$diff_log")
+				if [ "$size" -ne 0 ]; then
 					log_marker "$test results:"
-					cat $diff_log >>$LOG_FILE
+					printf '%s\n' "$(< "$diff_log")" >> "$LOG_FILE"
 				fi
 			fi
 		done
@@ -639,35 +638,37 @@ report_end() {
 
 	log_marker "CPUS used: $CPUS"
 	log_marker "Application versions"
-	for app in $APPS_NEEDED
-	do
-		if [ "$app" = "smatch" ]; then
-			app=$SMATCH
-		fi
-		echo "version of $app:" >>$LOG_FILE
-		(which $app 2>&1) >> $LOG_FILE
-		($app --version 2>&1) >> $LOG_FILE
-		echo >>$LOG_FILE
-	done
-	echo "version of dtschema python3 package:" >>$LOG_FILE
-	python3 -m pip list|grep dtschema >> $LOG_FILE
-	echo >>$LOG_FILE
+	{
+		for app in $APPS_NEEDED
+		do
+			if [ "$app" = "smatch" ]; then
+				app=$SMATCH
+			fi
+			echo "version of $app:"
+			which "$app" 2>&1
+			"$app" --version 2>&1
+			echo
+		done
+		echo "version of dtschema python3 package:"
+		python3 -m pip list|grep 'dtschema'
+		echo
+	} >> "$LOG_FILE"
 
 	log_marker
-	END_DATE=`date`
-	END_SEC=`date "+%s"`
-	DELTA=`expr $END_SEC - $START_SEC`
+	END_DATE=$(date)
+	END_SEC=$(date "+%s")
+	DELTA=$((END_SEC - START_SEC))
 	log_marker "Test duration: $DELTA seconds (Started $START_DATE, ended $END_DATE)"
 	if [ -f "$LOG_SUMMARY_FILE" ]; then
 		echo -e "\e[106m\e[4m\e[1mTest Summary:\e[0m"
 		fail=0
-		while read ln
+		while read -r ln
 		do
-			empty=`echo $ln |wc -c`
+			empty=${#ln}
 			# Colored reporting to ensure people dont miss errors
 			# See http://misc.flogisoft.com/bash/tip_colors_and_formatting
-			if [ $empty -gt 2 ]; then
-				pass=`echo $ln|grep "Passed(ALL)"`
+			if [ "$empty" -gt 2 ]; then
+				pass=$(echo "$ln" | grep 'Passed(ALL)')
 				if [ -z "$pass" ]; then
 					# Red back, white foreground
 					echo -e "\e[1m\e[97m\e[101m$ln\e[0m"
@@ -677,12 +678,12 @@ report_end() {
 					echo -e "\e[1m\e[97m\e[102m$ln\e[0m"
 				fi
 			fi
-		done <$LOG_SUMMARY_FILE
-		echo "***************** DETAILED RESULTS *********">>$LOG_SUMMARY_FILE
-		cat "$LOG_FILE">>$LOG_SUMMARY_FILE
-		mv $LOG_SUMMARY_FILE $LOG_FILE
+		done < "$LOG_SUMMARY_FILE"
+		echo "***************** DETAILED RESULTS *********" >> "$LOG_SUMMARY_FILE"
+		printf '%s\n' "$(< "$LOG_FILE")" >> "$LOG_SUMMARY_FILE"
+		mv "$LOG_SUMMARY_FILE" "$LOG_FILE"
 		echo -ne "\e[96m\e[40mComplete report is available here: "
-		if [ $fail -eq 1 ]; then
+		if [ "$fail" -eq 1 ]; then
 			echo -e "\e[92m\e[41m\e[5m$LOG_FILE\e[0m"
 		else
 			echo -e "\e[97m\e[42m\e[5m$LOG_FILE\e[0m"
@@ -697,13 +698,13 @@ check_missing_application() {
 	for i in $APPS_NEEDED
 	do
 		if [ "$i" = "smatch" ]; then
-			i=`cat $SMATCH|grep smatch|cut -d ' ' -f1`
+			i=$(printf '%s\n' "$(< "$SMATCH")" | grep 'smatch'|cut -d ' ' -f1)
 			if [ -z "$i" ]; then
 				i=smatch
 			fi
 		fi
-		which "$i" > /dev/null
-		if [ $? -ne 0 ]; then
+		
+		if ! which "$i" > /dev/null; then
 			APPS_MISSING="$APPS_MISSING $i"
 		fi
 	done
@@ -721,7 +722,7 @@ recommend_missing_application() {
 		if [ -x /usr/lib/command-not-found ]; then
 			for i in $APPS_MISSING
 			do
-				/usr/lib/command-not-found --no-failure-msg $i
+				/usr/lib/command-not-found --no-failure-msg "$i"
 			done
 		fi
 		return 2
@@ -733,54 +734,65 @@ APP_NAME=$0
 ###################
 # Help
 usage() {
-	echo "$*" >&2
-	echo "Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" >&2
-	echo -e "\t-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" >&2
-	echo -e "\t-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" >&2
-	echo -e "\t-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" >&2
-	echo -e "\t-B build_target: override default build target and use provided build_target" >&2
-	echo -e "\t-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" >&2
-	echo -e "\t-l logfile: report file (defaults to $DEFAULT_LOG)" >&2
-	echo -e "\t-L Use llvm to build 'LLVM=1 CC='$ccache clang''" >&2
-	echo -e "\t-C: run Complete tests(WARNING: could take significant time!)" >&2
-	echo -e "\t-c defconfig: name (default uses current .config + olddefconfig)" >&2
-	echo -e "\t-[1..9]: test the tip of current branch (1 to 9 number of patches)" >&2
-	echo -e "\t-n N: test the tip of current branch with 'N' number of patches" >&2
-	echo -e "\t-p patch_dir: which directory to take patches from (expects sorted in order)" >&2
-	echo -e "\t-b base_branch: test patches from base_branch" >&2
-	echo -e "\t-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" >&2
-	echo -e "\t-U : Do u-boot basic sanity tests" >&2
-	echo -e "\t-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" >&2
-	echo -e "\t-m : maximum line length number to be passed on to checkpatch.pl" >&2
-	echo -e "\t-S smatch_script : Provide a custom smatch_script instead of creating our own" >&2
-	echo >&2
-	echo "NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" >&2
-	echo "NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" >&2
-	echo >&2
-	echo "Example usage 1: verify last commmitted patch" >&2
-	echo -e "\t $APP_NAME -1" >&2
-	echo "Example usage 2: verify on top of current branch patches from location ~/tmp/test-patches" >&2
-	echo -e "\t $APP_NAME -p ~/tmp/test-patches" >&2
-	echo "Example usage 3: verify *from* branch 'base_branch' till current branch" >&2
-	echo -e "\t $APP_NAME -b base_branch" >&2
-	echo "Example usage 4: verify from current branch, all patches *until* 'test_branch'" >&2
-	echo -e "\t $APP_NAME -t test_branch" >&2
-	echo "Example usage 5: verify from branch, all patches from 'base_branch' until 'test_branch'" >&2
-	echo -e "\t $APP_NAME -b base_branch -t test_branch" >&2
-	echo "Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" >&2
-	echo -e "\t $APP_NAME -b base_branch -t test_branch -C" >&2
-	echo >&2
-	echo "Example for usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" >&2
-	echo -e "\t $APP_NAME -B bzImage -1" >&2
-	echo "Example for usage 7: on a cross_compiled ARM build using defaults, 1 patch" >&2
-	echo -e "\t $APP_NAME -d -1" >&2
-	echo "Example for usage 8: on a cross_compiled ARM build using defaults,15 patches" >&2
-	echo -e "\t $APP_NAME -d -n 15" >&2
-	check_missing_application
-	if [ $? -ne 0 ]; then
+	printf '%s\n' "$*"
+
+	printf '%s\n' \
+		'' \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		''
+
+	printf '\t%s\n' \
+		"-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" \
+		"-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" \
+		"-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" \
+		"-B build_target: override default build target and use provided build_target" \
+		"-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" \
+		"-l logfile: report file (defaults to $DEFAULT_LOG)" \
+		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
+		"-C: run Complete tests(WARNING: could take significant time!)" \
+		"-c defconfig: name (default uses current .config + olddefconfig)" \
+		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
+		"-n N: test the tip of current branch with 'N' number of patches" \
+		"-p patch_dir: which directory to take patches from (expects sorted in order)" \
+		"-b base_branch: test patches from base_branch" \
+		"-t test_branch: optionally used with -b, till head branch, if not provided, along with -b, default will be tip of current branch" \
+		"-U : Do u-boot basic sanity tests" \
+		"-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" \
+		"-m : maximum line length number to be passed on to checkpatch.pl" \
+		"-S smatch_script : Provide a custom smatch_script instead of creating our own"
+
+	printf '%s\n' \
+		'' \
+		"NOTE: only one of -1, -c, -p or (-b,-t) should be used - but at least one of these should be used" \
+		"NOTE: cannot have a diff pending OR be on a dangling branch base_branch should exist as well" \
+		''
+
+	printf '%s\n\t%s\n' \
+		"Example usage 1: verify last commmitted patch" \
+		"$APP_NAME -1" \
+		"Example usage 2: verify on top of current branch patches from location ~/tmp/test-patches" \
+		"$APP_NAME -p ~/tmp/test-patches" \
+		"Example usage 3: verify *from* branch 'base_branch' till current branch" \
+		"$APP_NAME -b base_branch" \
+		"Example usage 4: verify from current branch, all patches *until* 'test_branch'" \
+		"$APP_NAME -t test_branch" \
+		"Example usage 5: verify from branch, all patches from 'base_branch' until 'test_branch'" \
+		"$APP_NAME -b base_branch -t test_branch" \
+		"Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" \
+		"$APP_NAME -b base_branch -t test_branch -C" \
+		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
+		"$APP_NAME -B bzImage -1" \
+		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
+		"$APP_NAME -d -1" \
+		"Example usage 8: on a cross_compiled ARM build using defaults,15 patches" \
+		"$APP_NAME -d -n 15"
+
+	printf '%s\n' ''
+
+	if ! check_missing_application; then
 		recommend_missing_application
 	fi
-}
+} >&2
 
 ORIDE=0
 DTB_NOSKIP=0
@@ -797,24 +809,24 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 		ORIDE=1
 	;;
 	d)
-		if [ -z "$LLVM" -a -z "$CROSS_COMPILE" ]; then
+		if [ -z "$LLVM" ] && [ -z "$CROSS_COMPILE" ]; then
 			export CROSS_COMPILE="$DEF_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
 			export ARCH="$DEF_ARCH"
 		fi
-		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -z "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_BUILDTARGETS"
 		fi
 	;;
 	V)
-		if [ -z "$LLVM" -a -z "$CROSS_COMPILE" ]; then
+		if [ -z "$LLVM" ] && [ -z "$CROSS_COMPILE" ]; then
 			export CROSS_COMPILE="$DEF_V8_CROSS_COMPILE"
 		fi
 		if [ -z "$ARCH" ]; then
 			export ARCH="$DEF_V8_ARCH"
 		fi
-		if [ -z "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -z "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS="$KP_TARGETS $DEF_V8_BUILDTARGETS"
 		fi
 	;;
@@ -828,7 +840,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	U)
 		DEF_BUILDTARGETS=""
-		if [ -n "$KP_TARGETS" -a $ORIDE -eq 0 ]; then
+		if [ -n "$KP_TARGETS" ] && [ $ORIDE -eq 0 ]; then
 			export KP_TARGETS=""
 		fi
 		if [ -n "$COMPLETE_TESTS" ]; then
@@ -869,7 +881,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	[1-9])
 		TEST_TOP=yes
-		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${PATCH_DIR}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -$opt with other options"
 			exit 1;
 		fi
@@ -877,19 +889,19 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	;;
 	n)
 		TEST_TOP=yes
-		if [ -n "$PATCH_DIR" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${PATCH_DIR}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -n with other options"
 			exit 1;
 		fi
 		PATCHCOUNT=$OPTARG
-		if [ x"$PATCHCOUNT" = x0 ]; then
+		if [ "$PATCHCOUNT" -eq 0 ]; then
 			usage "Hey! Do your own '0' patch testing!!!"
 			exit 1;
 		fi
 	;;
 	p)
 		PATCH_DIR=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$BASE_BRANCH" -o -n "$TEST_BRANCH" ]; then
+		if [ -n "${TEST_TOP}${BASE_BRANCH}${TEST_BRANCH}" ]; then
 			usage "cannot use -p with other options"
 			exit 1;
 		fi
@@ -897,27 +909,27 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 			usage "Patch Directory $PATCH_DIR does not exist?"
 			exit 1;
 		fi
-		PATCHES=`ls $PATCH_DIR/*.patch|grep -v "$COVER_LETTER"|xargs realpath`
-		PATCHCOUNT=`ls $PATCHES|wc -l`
-		if [ $PATCHCOUNT -eq 0 ]; then
+		PATCHES=$(realpath "$PATCH_DIR"/*.patch|grep -v "$COVER_LETTER")
+		PATCHCOUNT=$(echo "$PATCHES" |wc -l)
+		if [ "$PATCHCOUNT" -eq 0 ]; then
 			usage "Patch directory $PATCH_DIR has no patches?"
 			exit 1;
 		fi
 	;;
 	b)
 		BASE_BRANCH=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+		if [ -n "${TEST_TOP}${PATCH_DIR}" ]; then
 			usage "cannot use -b with other options"
 			exit 1;
 		fi
 	;;
 	t)
 		TEST_BRANCH=$OPTARG
-		if [ -n "$TEST_TOP" -o -n "$PATCH_DIR" ]; then
+		if [ -n "${TEST_TOP}${PATCH_DIR}" ]; then
 			usage "cannot use -t with other options"
 			exit 1;
 		fi
-		CHECK=`git branch|grep $TEST_BRANCH 2>/dev/null`
+		CHECK=$(git branch|grep "$TEST_BRANCH" 2>/dev/null)
 		if [ -z "$CHECK" ]; then
 			usage "Test branch $TEST_BRANCH does not exist?"
 			exit 1
@@ -940,7 +952,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	esac
 done
 
-if [ -z "$TEST_BRANCH" -a -z "$BASE_BRANCH" -a -z "$PATCH_DIR" -a -z "$TEST_TOP" ]; then
+if [ -z "${TEST_BRANCH}${BASE_BRANCH}${PATCH_DIR}${TEST_TOP}" ]; then
 	usage "Need at least 1 test type"
 	exit 2
 fi
@@ -949,15 +961,14 @@ if [ -n "${CROSS_COMPILE}" ]; then
 	APPS_NEEDED="$APPS_NEEDED ${CROSS_COMPILE}gcc"
 fi
 
-check_missing_application
-if [ $? -ne 0 ]; then
+if ! check_missing_application; then
 	usage "Missing apps"
 	exit 2
 fi
 
-GN=`git config --get user.name`
-GE=`git config --get user.email`
-if [ -z "$GE" -o -z "$GN" ]; then
+GN=$(git config --get user.name)
+GE=$(git config --get user.email)
+if [ -z "$GE" ] || [ -z "$GN" ]; then
 	echo "We need to know who you are to proceed, please check 'git config -l' and fix via:"
 	echo 'git config --global user.email "you@example.com"'
 	echo 'git config --global user.name "Your Name"'
@@ -992,29 +1003,29 @@ fi
 if [ -z "$TEST_B_DIR" ]; then
 	TEST_B_DIR=$DEFAULT_TMPDIR
 fi
-KDIR=`pwd`
+KDIR=$(pwd)
 
-CURRENT_BRANCH=`git branch | grep '^*' | cut -d " " -f 2`
+CURRENT_BRANCH=$(git branch | grep '^\*' | cut -d " " -f 2)
 # if we have base or testing branch missing, populate the other as the current branch
-if [ -n "$TEST_BRANCH" -a -z "$BASE_BRANCH" ]; then
+if [ -n "$TEST_BRANCH" ] && [ -z "$BASE_BRANCH" ]; then
 	BASE_BRANCH=$CURRENT_BRANCH
 fi
 
-if [ -n "$BASE_BRANCH" -a -z "$TEST_BRANCH" ]; then
+if [ -n "$BASE_BRANCH" ] && [ -z "$TEST_BRANCH" ]; then
 	TEST_BRANCH=$CURRENT_BRANCH
 fi
-if [ -n "$TEST_BRANCH" -a "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
+if [ -n "$TEST_BRANCH" ] && [ "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
 	usage "Test branch and base branch are the same '$TEST_BRANCH'.. Hmm.. not sleeping lately?"
 	exit 3
 fi
 
-if [ ! -e ".config" -a -z "$DEFCONFIG" ]; then
+if [ ! -e ".config" ] && [ -z "$DEFCONFIG" ]; then
 	usage "No default .config exists nor is a defconfig specified with -c"
 	exit 3
 fi
 
 # lets do some basic verification
-gdiff=`git diff`
+gdiff=$(git diff)
 if [ -n "$gdiff" ]; then
 	usage "git diff returned data.. you may want to do git reset --hard or stash changes"
 	exit 3
@@ -1025,9 +1036,9 @@ if [ "$CURRENT_BRANCH" = "(no" ]; then
 	exit 3
 fi
 
-GIT_RM_DIR=`git rev-parse --git-path rebase-merge`
-GIT_RA_DIR=`git rev-parse --git-path rebase-apply`
-if [ -e "$GIT_RM_DIR" -o -e "$GIT_RA_DIR" ]; then
+GIT_RM_DIR=$(git rev-parse --git-path rebase-merge)
+GIT_RA_DIR=$(git rev-parse --git-path rebase-apply)
+if [ -e "$GIT_RM_DIR" ] || [ -e "$GIT_RA_DIR" ]; then
 	usage "$GIT_RA_DIR or $GIT_RM_DIR exists - implying rebase or am in progress. please cleanup to proceed - 'git am --abort;git rebase --abort' perhaps?"
 	exit 3
 fi
@@ -1041,76 +1052,73 @@ LOG_SUMMARY_FILE=$TEST_DIR/summary
 # NOW, hook on. cleanup.. we are about to start doing serious stuff.
 trap on_exit EXIT SIGINT SIGTERM
 
-mkdir -p $TEST_DIR $PATCHD
-cp .config $TEST_DIR/.config 2>/dev/null
+mkdir -p "$TEST_DIR" "$PATCHD"
+cp .config "$TEST_DIR"/.config 2>/dev/null
 if [ -z "$SMATCH" ]; then
 	SMATCH=$TEST_DIR/smatch
-	echo -e '#!/bin/bash\nsmatch -p=kernel $@'> $SMATCH
-	chmod +x $SMATCH
+	echo -e '#!/bin/bash\nsmatch -p=kernel $@'> "$SMATCH"
+	chmod +x "$SMATCH"
 fi
 
 # First create a list of patches to test..
 if [ -n "$TEST_TOP" ]; then
-	if ! [[ x$PATCHCOUNT =~ ^x[0-9]+$ ]] ; then
+	if ! [[ "$PATCHCOUNT" =~ ^[0-9]+$ ]] ; then
 		usage "error: requested number of patches '$PATCHCOUNT' Not a number"
 		exit 4
 	fi
-	git format-patch --no-cover-letter -M -C -o $PATCHD -$PATCHCOUNT >/dev/null
-	git checkout -b $TEST_BRANCH_NAME
-	git reset --hard HEAD~$PATCHCOUNT
+	git format-patch --no-cover-letter -M -C -o "$PATCHD" -"$PATCHCOUNT" >/dev/null
+	git checkout -b "$TEST_BRANCH_NAME"
+	git reset --hard HEAD~"$PATCHCOUNT"
 fi
 
 if [ -n "$PATCHES" ]; then
-	cp -rf $PATCHES $PATCHD
-	git checkout -b $TEST_BRANCH_NAME
+	cp -rf "$PATCHES" "$PATCHD"
+	git checkout -b "$TEST_BRANCH_NAME"
 fi
 
 if [ -n "$TEST_BRANCH" ]; then
-	git format-patch --no-cover-letter -M -C -o $PATCHD $BASE_BRANCH..$TEST_BRANCH >/dev/null
-	PATCHES=`realpath $PATCHD/*.patch|grep -v "$COVER_LETTER"`
-	PATCHCOUNT=`ls $PATCHES|wc -l`
-	if [ $PATCHCOUNT -eq 0 ]; then
+	git format-patch --no-cover-letter -M -C -o "$PATCHD" "$BASE_BRANCH".."$TEST_BRANCH" >/dev/null
+	PATCHES=$(realpath "$PATCHD"/*.patch|grep -v "$COVER_LETTER")
+	PATCHCOUNT=$(echo "$PATCHES" |wc -l)
+	if [ "$PATCHCOUNT" -eq 0 ]; then
 		usage "$BASE_BRANCH..$TEST_BRANCH generated no patches!"
 		exit 4;
 	fi
-	git branch $TEST_BRANCH_NAME $BASE_BRANCH >/dev/null
-	git checkout $TEST_BRANCH_NAME
+	git branch "$TEST_BRANCH_NAME" "$BASE_BRANCH" >/dev/null
+	git checkout "$TEST_BRANCH_NAME"
 fi
 
 if [ -e "$LOG_FILE" ]; then
 	echo "$LOG_FILE exists, taking a backup"
-	mv $LOG_FILE $LOG_FILE.bak
+	mv "$LOG_FILE" "$LOG_FILE".bak
 fi
 
-START_DATE=`date`
-START_SEC=`date "+%s"`
+START_DATE=$(date)
+START_SEC=$(date "+%s")
 
 #=========== MAIN TEST TRIGGER LOOP =========
 tests_start
 
-PATCHES=`realpath $PATCHD/*.patch|grep -v "$COVER_LETTER"`
-PATCHCOUNT=`ls $PATCHES|wc -l`
+PATCHES=$(realpath "$PATCHD"/*.patch|grep -v "$COVER_LETTER")
+PATCHCOUNT=$(echo "$PATCHES" |wc -l)
 PATCH_NUM=1
 EST_TOTAL="unknown"
 ETA_REMAIN="unknown"
 DELTAP="unknown"
-STARTP_SEC=`date "+%s"`
+STARTP_SEC=$(date "+%s")
 for patch in $PATCHES
 do
-	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" `basename $patch` "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL seconds"
-	test_patch $patch
-	report_patch $patch
-	NOW_SEC=`date "+%s"`
-	DELTAP=`expr $NOW_SEC - $STARTP_SEC`
-	AVG=`expr $DELTAP / $PATCH_NUM`
-	EST_TOTAL=`expr $AVG \* $PATCHCOUNT`
-	ETA_REMAIN=`expr $EST_TOTAL - $DELTAP`
-	PATCH_NUM=`expr $PATCH_NUM + 1`
+	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" "$(basename "$patch")" "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL seconds"
+	test_patch "$patch"
+	report_patch "$patch"
+	NOW_SEC=$(date "+%s")
+	DELTAP=$((NOW_SEC - STARTP_SEC))
+	AVG=$((DELTAP / PATCH_NUM))
+	EST_TOTAL=$((AVG * PATCHCOUNT))
+	ETA_REMAIN=$((EST_TOTAL - DELTAP))
+	PATCH_NUM=$((PATCH_NUM + 1))
 done
 
 tests_end
 report_tests_end
 report_end
-
-#=========== COMPLETE - let the cleanup handler clean things =========
-exit 0
