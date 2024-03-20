@@ -11,51 +11,51 @@ ARG INSTALL_GCC=0
 #--- END START
 
 ARG DEBIAN_FRONTEND noninteractive
-RUN apt-get update && \
-    apt-get install -y \
-        build-essential \
-        wget \
-        gcc \
-        ccache \
-        ncurses-dev \
-        xz-utils \
-        libssl-dev \
-        bc \
-        flex \
-        libelf-dev \
-        bison \
-        libyaml-dev \
-        python3-pip \
-        libcurl4-gnutls-dev \
-        libexpat1-dev \
-        gettext \
-        libz-dev \
-        libssl-dev \
-        flex \
-        bison \
-        pkg-config \
-        sqlite3 \
-        libsqlite3-dev \
-        llvm \
-        autoconf \
-        pkg-config \
-        ocaml-nox \
-        ocaml-findlib \
-        menhir \
-        libmenhir-ocaml-dev \
-        ocaml-native-compilers \
-        libpcre-ocaml-dev \
-        libparmap-ocaml-dev \
-        libpython3.11 \
-        libpython3.11-dev \
-        libgmp-dev \
-        libmpc-dev \
-        diffstat \
-        yamllint \
-        swig \
-        python3 \
-        python3-ruamel.yaml \
-        aria2
+RUN apt-get update \
+	&& apt-get install -y \
+		build-essential \
+		wget \
+		gcc \
+		ccache \
+		ncurses-dev \
+		xz-utils \
+		libssl-dev \
+		bc \
+		flex \
+		libelf-dev \
+		bison \
+		libyaml-dev \
+		python3-pip \
+		libcurl4-gnutls-dev \
+		libexpat1-dev \
+		gettext \
+		libz-dev \
+		libssl-dev \
+		flex \
+		bison \
+		pkg-config \
+		sqlite3 \
+		libsqlite3-dev \
+		llvm \
+		autoconf \
+		pkg-config \
+		ocaml-nox \
+		ocaml-findlib \
+		menhir \
+		libmenhir-ocaml-dev \
+		ocaml-native-compilers \
+		libpcre-ocaml-dev \
+		libparmap-ocaml-dev \
+		libpython3.11 \
+		libpython3.11-dev \
+		libgmp-dev \
+		libmpc-dev \
+		diffstat \
+		yamllint \
+		swig \
+		python3 \
+		python3-ruamel.yaml \
+		aria2
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
@@ -78,62 +78,63 @@ LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_ver
 
 
 ARG DEBIAN_FRONTEND noninteractive
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ca-certificates \
-        gnupg2 \
-        build-essential \
-        wget \
-        gcc \
-        ccache \
-        ncurses-dev \
-        xz-utils \
-        libssl-dev \
-        bc \
-        flex \
-        libelf-dev \
-        bison \
-        libyaml-dev \
-        python3-pip \
-        libcurl4-gnutls-dev \
-        libexpat1-dev \
-        gettext \
-        libz-dev \
-        libssl-dev \
-        flex \
-        bison \
-        pkg-config \
-        sqlite3 \
-        libsqlite3-dev \
-        autoconf \
-        pkg-config \
-        ocaml-nox \
-        ocaml-findlib \
-        menhir \
-        libmenhir-ocaml-dev \
-        ocaml-native-compilers \
-        libpcre-ocaml-dev \
-        libparmap-ocaml-dev \
-        libpython3.11 \
-        libpython3.11-dev \
-        libgmp-dev \
-        libmpc-dev \
-        diffstat \
-        yamllint \
-        swig \
-        python3 \
-        python3-dev \
-        python3-ruamel.yaml
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		ca-certificates \
+		gnupg2 \
+		build-essential \
+		wget \
+		gcc \
+		ccache \
+		ncurses-dev \
+		xz-utils \
+		libssl-dev \
+		bc \
+		flex \
+		libelf-dev \
+		bison \
+		libyaml-dev \
+		python3-pip \
+		libcurl4-gnutls-dev \
+		libexpat1-dev \
+		gettext \
+		libz-dev \
+		libssl-dev \
+		flex \
+		bison \
+		pkg-config \
+		sqlite3 \
+		libsqlite3-dev \
+		autoconf \
+		pkg-config \
+		ocaml-nox \
+		ocaml-findlib \
+		menhir \
+		libmenhir-ocaml-dev \
+		ocaml-native-compilers \
+		libpcre-ocaml-dev \
+		libparmap-ocaml-dev \
+		libpython3.11 \
+		libpython3.11-dev \
+		libgmp-dev \
+		libmpc-dev \
+		diffstat \
+		yamllint \
+		swig \
+		python3 \
+		python3-dev \
+		python3-ruamel.yaml
 
 # Add our llvm repo configs
 COPY llvm-config /
-RUN apt-get update && apt-get install -y --no-install-recommends\
-        llvm \
-        clang \
-        lld
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		llvm \
+		clang \
+		lld
 
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get clean \
+	&& rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
