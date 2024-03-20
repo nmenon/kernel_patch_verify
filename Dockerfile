@@ -45,6 +45,7 @@ RUN apt-get update \
 		ocaml-native-compilers \
 		ocaml-nox \
 		pkg-config \
+		python-is-python3 \
 		python3 \
 		python3-dev \
 		python3-pip \
@@ -62,8 +63,6 @@ RUN apt-get update \
 		/var/lib/apt/lists/* \
 		/var/tmp/* \
 		/var/log/*
-
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 COPY build-env.sh /tmp
 RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
