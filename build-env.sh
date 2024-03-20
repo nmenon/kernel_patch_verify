@@ -47,6 +47,7 @@ download_build_install_python_deps()
 	# scripts/spdxcheck.py dependencies
 	python -m pip install --upgrade  --break-system-packages ply gitpython yamllint rfc3987 pylibfdt
 	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
+	rm -rf "/tmp/.cache/"
 }
 
 clone_and_cd()
