@@ -18,7 +18,7 @@ export COCCI_TAG=1.1.1
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2024.02
 
-ARIA_OPTS=(--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10)
+ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 
 download_build_install_git()
 {
@@ -52,7 +52,7 @@ download_build_install_python_deps()
 clone_and_cd()
 {
 	cd /tmp &&
-	git clone --depth=1 --branch "$1" "$2" "$3" &&
+	git clone --progress --depth=1 --branch "$1" "$2" "$3" &&
 	cd /tmp/"$3"
 	return $?
 }
