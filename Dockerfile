@@ -66,7 +66,7 @@ RUN apt-get update \
 		/var/log/*
 
 RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
-	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
+	/tmp/build-env.sh
 
 # Publish the source repository
 LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_verify
@@ -86,6 +86,22 @@ RUN apt-get update \
 		/var/lib/apt/lists/* \
 		/var/tmp/* \
 		/var/log/*
+
+# install toolchains if requested
+RUN test "$INSTALL_GCC" -eq "1" \
+	&& apt-get update \
+	&& apt-get install -y --no-install-recommends \
+		gcc-aarch64-linux-gnu \
+		gcc-arm-linux-gnueabihf \
+	&& echo "**** cleanup ****" \
+	&& apt-get autoremove \
+	&& apt-get clean \
+	&& rm -rf \
+		/tmp/* \
+		/var/lib/apt/lists/* \
+		/var/tmp/* \
+		/var/log/* \
+	|| echo "Not installing ARM toolchains!"
 
 COPY other-configs/ /
 
