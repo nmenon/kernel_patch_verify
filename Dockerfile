@@ -55,7 +55,15 @@ RUN apt-get update \
 		swig \
 		python3 \
 		python3-ruamel.yaml \
-		aria2
+		aria2 \
+	&& echo "**** cleanup ****" \
+	&& apt-get autoremove \
+	&& apt-get clean \
+	&& rm -rf \
+		/tmp/* \
+		/var/lib/apt/lists/* \
+		/var/tmp/* \
+		/var/log/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
@@ -123,7 +131,15 @@ RUN apt-get update \
 		swig \
 		python3 \
 		python3-dev \
-		python3-ruamel.yaml
+		python3-ruamel.yaml \
+	&& echo "**** cleanup ****" \
+	&& apt-get autoremove \
+	&& apt-get clean \
+	&& rm -rf \
+		/tmp/* \
+		/var/lib/apt/lists/* \
+		/var/tmp/* \
+		/var/log/*
 
 # Add our llvm repo configs
 COPY llvm-config /
@@ -131,10 +147,16 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		llvm \
 		clang \
-		lld
+		lld \
+	&& echo "**** cleanup ****" \
+	&& apt-get autoremove \
+	&& apt-get clean \
+	&& rm -rf \
+		/tmp/* \
+		/var/lib/apt/lists/* \
+		/var/tmp/* \
+		/var/log/*
 
-RUN apt-get clean \
-	&& rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
