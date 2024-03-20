@@ -64,8 +64,8 @@ RUN apt-get update \
 		/var/tmp/* \
 		/var/log/*
 
-COPY build-env.sh /tmp
-RUN  INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
+RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
+	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
 # Publish the source repository
 LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_verify
