@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export USER_ID GROUP_ID KP_PATH DOCKER_MOUNT_DIRS IMAGE_ID
+export DOCKER_MOUNT_DIRS IMG_NAME KP_PATH
 
 # Check if Docker image exists
 
@@ -38,9 +38,6 @@ else
 	fi
 fi
 
-USER_ID=$(id -u)
-GROUP_ID=$(id -g)
-
 DOCKER_MOUNT_DIRS=()
 DOCKER_MOUNT_DIRS+=(-v /tmp:/tmp)
 DOCKER_MOUNT_DIRS+=(-v /opt:/opt)
@@ -56,13 +53,6 @@ fi
 if [ "$GIT_WORKTREE_COMMONDIR" != ".git" ]; then
 	DOCKER_MOUNT_DIRS+=(-v "$GIT_WORKTREE_COMMONDIR":"$GIT_WORKTREE_COMMONDIR")
 fi
-
-# Run our image to add our swuser
-docker run "$IMG_NAME" /bin/bash -c "groupadd -r swuser -g $GROUP_ID && useradd -u $USER_ID -r -g swuser -d /workdir -s /sbin/nologin -c \"Docker kernel patch user\" swuser"
-# Get the container ID of the last run container (above)
-CONTAINER_ID=$(docker ps -lq)
-# Commit the container state (returns an image_id with sha256: prefix cut off)
-IMAGE_ID=$(docker commit "$CONTAINER_ID" | cut -c8-)
 
 # list of paths to append to the PATH variable in the container
 extra_paths=(
