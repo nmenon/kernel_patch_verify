@@ -26,6 +26,11 @@
 source /etc/profile
 shopt -s expand_aliases
 
+# extend the path with the supplied extra directories
+if [ -n "$KP_PATH" ]; then
+       export PATH=${KP_PATH}:${PATH}
+fi
+
 ccache=$(which ccache)
 
 # We would rather that we hit cache more often, than rebuild..

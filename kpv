@@ -3,11 +3,7 @@
 source "$(dirname "$(readlink -f "$0")")/kp_common"
 
 docker run --rm -ti \
-	--user "$USER_ID":"$GROUP_ID" \
-	-e PATH \
+	-e KP_PATH -e CROSS_COMPILE -e ARCH \
 	"${DOCKER_MOUNT_DIRS[@]}" \
-	"$IMAGE_ID" \
+	"$IMG_NAME" \
 	kernel_patch_verify -S /usr/local/smatch/bin/k_sm_check_script "$@"
-
-# TODO: we can reuse this image for future runs, for now just clean up after ourselves
-docker rmi "$IMAGE_ID"

@@ -22,10 +22,12 @@ RUN apt-get update \
 		ca-certificates \
 		ccache \
 		diffstat \
+		dumb-init \
 		flex \
 		gcc \
 		gettext \
 		gnupg2 \
+		gosu \
 		libcurl4-gnutls-dev \
 		libelf-dev \
 		libexpat1-dev \
@@ -88,6 +90,18 @@ RUN apt-get update \
 		/var/log/*
 
 COPY other-configs/ /
+
+RUN echo "**** create developer user and make our folders ****" \
+	&& useradd -u 1000 -U -d /config -s /bin/false developer \
+	&& usermod -G users developer \
+	&& mkdir /workdir && chown developer:developer /workdir \
+	&& mkdir /config && chown developer:developer /config
+
+ENTRYPOINT ["/init"]
+
+CMD ["/usr/bin/bash"]
+
+VOLUME /workdir
 
 COPY kernel_patch_verify /usr/bin/kernel_patch_verify
 
