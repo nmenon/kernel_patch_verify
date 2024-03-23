@@ -5,6 +5,6 @@ source "$(dirname "$(readlink -f "$0")")/kp_common"
 # If we wanted to get to bash shell:
 docker run --rm -ti \
 	-e KP_PATH -e CROSS_COMPILE -e ARCH \
-	"${DOCKER_MOUNT_DIRS[@]}" \
+	"${DOCKER_ARGS[@]}" \
 	"$IMG_NAME" \
 	bash --init-file /etc/profile

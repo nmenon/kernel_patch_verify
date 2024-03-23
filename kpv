@@ -4,6 +4,6 @@ source "$(dirname "$(readlink -f "$0")")/kp_common"
 
 docker run --rm -ti \
 	-e KP_PATH -e CROSS_COMPILE -e ARCH \
-	"${DOCKER_MOUNT_DIRS[@]}" \
+	"${DOCKER_ARGS[@]}" \
 	"$IMG_NAME" \
 	kernel_patch_verify -S /usr/local/smatch/bin/k_sm_check_script "$@"
