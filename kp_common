@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export DOCKER_MOUNT_DIRS IMG_NAME KP_PATH
+export DOCKER_ARGS IMG_NAME KP_PATH
 
 # Check if Docker image exists
 
@@ -38,20 +38,36 @@ else
 	fi
 fi
 
-DOCKER_MOUNT_DIRS=()
-DOCKER_MOUNT_DIRS+=(-v /tmp:/tmp)
-DOCKER_MOUNT_DIRS+=(-v /opt:/opt)
-DOCKER_MOUNT_DIRS+=(-v "$CCACHEDIR":/ccache)
-DOCKER_MOUNT_DIRS+=(-v "$(pwd)":/workdir)
+DOCKER_ARGS=()
+DOCKER_ARGS+=(-v /tmp:/tmp)
+DOCKER_ARGS+=(-v /opt:/opt)
+DOCKER_ARGS+=(-v "$CCACHEDIR":/ccache)
 
 # Check if current directory is a git directory
-if ! GIT_WORKTREE_COMMONDIR=$(git rev-parse --git-common-dir); then
+if ! git rev-parse --is-inside-work-tree > /dev/null; then
 	exit 1
 fi
 
-# Mount parent directory if its a worktree
-if [ "$GIT_WORKTREE_COMMONDIR" != ".git" ]; then
-	DOCKER_MOUNT_DIRS+=(-v "$GIT_WORKTREE_COMMONDIR":"$GIT_WORKTREE_COMMONDIR")
+ROOT_GIT=$(git rev-parse --show-toplevel)
+# if a submodule or worktree then we need to fetch and preserve the gitdir path
+if [ -f "${ROOT_GIT}/.git" ]; then
+	gitdir_str=$(grep -P -o '(?<=gitdir:\s).*' "${ROOT_GIT}/.git")
+	relative_str=$(echo "$gitdir_str" | grep -P -o '^(../)*')
+	if [ -n "$relative_str" ]; then
+		# relative paths need to be preserved
+		common_path=$(realpath "$ROOT_GIT/$relative_str")
+		relative_pwd=$(realpath --relative-to="$common_path" "$PWD")
+		DOCKER_ARGS+=(-v "$common_path":"/workdir")
+		DOCKER_ARGS+=(-w "/workdir/${relative_pwd}")
+	else
+		# absolute paths can be passed through
+		gitdir_path=$(git rev-parse --git-common-dir)
+		DOCKER_ARGS+=(-v "$ROOT_GIT":"/workdir")
+		DOCKER_ARGS+=(-v "$gitdir_path":"$gitdir_path")
+	fi
+else
+	# normal git directory, just toss everything in
+	DOCKER_ARGS+=(-v "$ROOT_GIT":"/workdir")
 fi
 
 # list of paths to append to the PATH variable in the container
