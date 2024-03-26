@@ -18,7 +18,7 @@ export COCCI_TAG=1.1.1
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2024.02
 
-ARIA_OPTS=(--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10)
+ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 
 download_build_install_git()
 {
@@ -47,12 +47,13 @@ download_build_install_python_deps()
 	# scripts/spdxcheck.py dependencies
 	python -m pip install --upgrade  --break-system-packages ply gitpython yamllint rfc3987 pylibfdt
 	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
+	rm -rf "/tmp/.cache/"
 }
 
 clone_and_cd()
 {
 	cd /tmp &&
-	git clone --depth=1 --branch "$1" "$2" "$3" &&
+	git clone --progress --depth=1 --branch "$1" "$2" "$3" &&
 	cd /tmp/"$3"
 	return $?
 }
@@ -109,41 +110,9 @@ download_build_install_coccinelle()
 	rm -rf /tmp/"$FILE"
 }
 
-download_and_install_armgcc_64()
-{
-	local FILE URL
-	FILE='aarch64-gcc.tar.xz'
-	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz?revision=61c3be5d-5175-4db6-9030-b565aae9f766&la=en&hash=0A37024B42028A9616F56A51C2D20755C5EBBCD7"
-
-	cd /tmp
-	mkdir -p /opt/cross-gcc-linux-9/
-	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
-	rm -f /tmp/"$FILE"
-}
-
-download_and_install_armgcc_32()
-{
-	local FILE URL
-	FILE='aarch32-gcc.tar.xz'
-	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
-
-	cd /tmp
-	mkdir -p /opt/cross-gcc-linux-9/
-	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
-	rm -f /tmp/"$FILE"
-}
-
 download_build_install_git
 download_build_install_python_deps
 download_build_install_dtc
 download_build_install_smatch
 download_build_install_sparse
 download_build_install_coccinelle
-if [ "$INSTALL_GCC" == "1" ]; then
-	download_and_install_armgcc_64
-	download_and_install_armgcc_32
-else
-	echo "Skipping install GCC. INSTALL_GCC!=1. make sure that /opt/cross-gcc-linux-9/bin has aarch64-none-linux-gnu- and arm-none-linux-gnueabihf-"
-fi
