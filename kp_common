@@ -32,9 +32,9 @@ if [ -z "$ccache" ]; then
 	fi
 	CCACHEDIR=/tmp/ccache
 else
-	CCACHEDIR=$(ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3)
+	CCACHEDIR=$(ccache -s|grep "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ' ' -f3|xargs echo)
 	if [ -z "$CCACHEDIR" ]; then
-		CCACHEDIR=$(ccache -v -s|grep -i "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ':' -f2)
+		CCACHEDIR=$(ccache -v -s|grep -i "cache directory"|sed -e "s/\s\s*/ /g"|cut -d ':' -f2|xargs echo)
 	fi
 fi
 
