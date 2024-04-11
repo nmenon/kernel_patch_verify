@@ -119,7 +119,7 @@ download_and_install_armgcc_64()
 	cd /tmp
 	mkdir -p /opt/cross-gcc-linux-9/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
@@ -132,7 +132,7 @@ download_and_install_armgcc_32()
 	cd /tmp
 	mkdir -p /opt/cross-gcc-linux-9/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
