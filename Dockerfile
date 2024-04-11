@@ -3,13 +3,6 @@ FROM $BASE_DISTRO
 
 ARG INSTALL_GCC=0
 
-# In case of Proxy based environment, leave the following enabled.
-# in Direct internet cases, comment out the following two lines.
-#--- PROXY SETUP START
-# COPY proxy-configuration/ /
-# RUN  export DEBIAN_FRONTEND=noninteractive;apt-get update;apt-get install -y apt-transport-https socket corkscrew apt-utils
-#--- END START
-
 ARG DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
