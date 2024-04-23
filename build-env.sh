@@ -14,9 +14,9 @@ export SPARSE_TAG=v0.6.4
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/coccinelle/coccinelle/tags
-export COCCI_TAG=1.1.1
+export COCCI_TAG=1.2
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2024.02
+export DTSCHEMA_REV=v2024.04
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 
