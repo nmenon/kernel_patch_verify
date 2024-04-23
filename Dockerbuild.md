@@ -5,13 +5,6 @@ Quite often we need to build quite a bunch of applications to get the very
 latest tools and environment. Instead of hand holding every developer to get the
 latest environment, let's use Docker to bootstrap a common build environment.
 
-Proxy setup
-===========
-
-If you are working in an environment where an http proxy is necessary, update
-the files in `proxy-configuration` as required. With out this, you cannot
-install the various packages needed to build the Docker image.
-
 Versions of packages
 ====================
 

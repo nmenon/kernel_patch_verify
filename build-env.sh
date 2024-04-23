@@ -18,7 +18,7 @@ export COCCI_TAG=1.1.1
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2024.02
 
-ARIA_OPTS=(--timeout=180 --retry-wait=10 -m 0 -x 10 -j 10)
+ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 
 download_build_install_git()
 {
@@ -47,12 +47,13 @@ download_build_install_python_deps()
 	# scripts/spdxcheck.py dependencies
 	python -m pip install --upgrade  --break-system-packages ply gitpython yamllint rfc3987 pylibfdt
 	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
+	rm -rf "/tmp/.cache/"
 }
 
 clone_and_cd()
 {
 	cd /tmp &&
-	git clone --depth=1 --branch "$1" "$2" "$3" &&
+	git clone --progress --depth=1 --branch "$1" "$2" "$3" &&
 	cd /tmp/"$3"
 	return $?
 }
@@ -118,7 +119,7 @@ download_and_install_armgcc_64()
 	cd /tmp
 	mkdir -p /opt/cross-gcc-linux-9/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
@@ -131,7 +132,7 @@ download_and_install_armgcc_32()
 	cd /tmp
 	mkdir -p /opt/cross-gcc-linux-9/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /usr/local/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
