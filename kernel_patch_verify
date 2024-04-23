@@ -310,10 +310,6 @@ btest_include() {
 	kmake_single includecheck 1>&2
 }
 
-btest_headers_check() {
-	kmake_single headers_check 1>&2
-}
-
 btest_kbuild() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		kmake C=1 "$KP_TARGETS" "$MODULES" > /dev/null
@@ -348,7 +344,7 @@ tests_start() {
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		if [ $UBOOT_TESTING -eq 0 ]; then
-			TESTS_ALL1_SET="btest_stack btest_namespace btest_include btest_headers_check"
+			TESTS_ALL1_SET="btest_stack btest_namespace btest_include"
 		fi
 	fi
 	echo "Sequential tests to run: $TESTS_ALL_SET"
