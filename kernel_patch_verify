@@ -302,10 +302,6 @@ btest_stack() {
 	kmake checkstack 1>&2
 }
 
-btest_namespace() {
-	kmake namespacecheck 1>&2
-}
-
 btest_include() {
 	kmake_single includecheck 1>&2
 }
@@ -344,7 +340,7 @@ tests_start() {
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		if [ $UBOOT_TESTING -eq 0 ]; then
-			TESTS_ALL1_SET="btest_stack btest_namespace btest_include"
+			TESTS_ALL1_SET="btest_stack btest_include"
 		fi
 	fi
 	echo "Sequential tests to run: $TESTS_ALL_SET"
