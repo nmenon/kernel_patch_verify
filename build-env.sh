@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.44.0
+export GIT_TAG=2.45.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.7.0
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
@@ -23,6 +23,7 @@ ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 
 download_build_install_git()
 {
 	local FILE URL
+	set -x
 	FILE=git-"$GIT_TAG".tar.gz
 	URL="https://git.kernel.org/pub/scm/git/git.git/snapshot/${FILE}"
 
@@ -36,6 +37,7 @@ download_build_install_git()
 	make -j "$NPROC" prefix=/usr/local install
 	cd /tmp
 	rm -rf /tmp/git*
+	set +x
 }
 
 download_build_install_python_deps()
