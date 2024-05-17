@@ -71,11 +71,13 @@ if [ -z "$KP_TARGETS" ]; then
 fi
 
 kmake_single() {
-	make "$KM_A" "$KP_PARAMS" "$KM_C" "$KM_L" -j1 $@
+	# XXX: kmake operations depend on variable expansion- do not quote variables here.
+	make $KM_A $KP_PARAMS $KM_C $KM_L -j1 $@
 }
 
 kmake() {
-	make "$KM_A" "$KP_PARAMS" "$KM_C" "$KM_L" -j"$KM_CPUS" $@
+	# XXX: kmake operations depend on variable expansion- do not quote variables here.
+	make $KM_A $KP_PARAMS $KM_C $KM_L -j$KM_CPUS $@
 }
 
 ###################
