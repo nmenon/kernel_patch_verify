@@ -113,18 +113,22 @@ run_test_dummy() {
 get_sorted_existing_files()
 {
 	test_files=()
+	sorted_test_files=()
 	# If there are no files, then there is nothing to sort.. return empty
 	if [ -z "$*" ]; then
 		echo
 		return
 	fi
-	for i in $( (ls -d "$@" 2>/dev/null) | sort)
+	for i in "$@"
 	do
-		if [ -f "$i" ]; then
+		# If the file exists.. straight forward.. else:
+		# If the file is an object file, then, it can be a C or assembly file..
+		if [ -f "$i" -o -f "${i/%.o/.c}" -o -f "${i/%.o/.S}" -o -f "${i/%.o/.s}" ]; then
 			test_files+=("$i")
 		fi
 	done
-	printf '%s\n' "${test_files[@]}"
+	IFS=$'\n' sorted_test_files=($(sort <<<"${test_files[*]}")); unset IFS
+	printf '%s\n' "${sorted_test_files[@]}"
 }
 
 ###################
