@@ -702,7 +702,7 @@ check_missing_application() {
 				i=smatch
 			fi
 		fi
-		
+
 		if ! which "$i" > /dev/null; then
 			APPS_MISSING="$APPS_MISSING $i"
 		fi
