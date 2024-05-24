@@ -72,12 +72,14 @@ fi
 
 kmake_single() {
 	# XXX: kmake operations depend on variable expansion- do not quote variables here.
-	make $KM_A $KP_PARAMS $KM_C $KM_L -j1 $@
+	# Except for compiler option since ccache will be involved
+	make $KM_A $KP_PARAMS "$KM_C" $KM_L -j1 $@
 }
 
 kmake() {
 	# XXX: kmake operations depend on variable expansion- do not quote variables here.
-	make $KM_A $KP_PARAMS $KM_C $KM_L -j$KM_CPUS $@
+	# Except for compiler option since ccache will be involved
+	make $KM_A $KP_PARAMS "$KM_C" $KM_L -j$KM_CPUS $@
 }
 
 ###################
