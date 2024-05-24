@@ -408,10 +408,10 @@ report_tests_end() {
 
 test_patch() {
 	patch=$1
-	cfiles=$(diffstat -lp1 "$patch"|grep -P '\.c$'|sort)
-	ofiles=$(diffstat -lp1 "$patch"|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")
-	yfiles=$(diffstat -lp1 "$patch"|grep -P '\.yaml$'|sort)
-	dfiles=$(diffstat -lp1 "$patch"|grep 'boot/dts'|grep -v 'Makefile'|sort)
+	readarray -t cfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.c$'|sort)"
+	readarray -t ofiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")"
+	readarray -t yfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.yaml$'|sort)"
+	readarray -t dfiles <<< "$(diffstat -lp1 "$patch"|grep 'boot/dts'|grep -v 'Makefile'|sort)"
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -446,28 +446,28 @@ test_patch() {
 
 	run_test start "$TEST_DIR" defconfig
 	# run twice - we just want end build errors..
-	run_test start "$TEST_DIR" btest_kbuild "$ofiles"
-	run_test start "$TEST_DIR" btest_kbuild "$ofiles"
+	run_test start "$TEST_DIR" btest_kbuild "${ofiles[@]}"
+	run_test start "$TEST_DIR" btest_kbuild "${ofiles[@]}"
 
 	for test_s in $TESTS_B_SET
 	do
-		run_test start "$TEST_DIR" "$test_s" "$ofiles"
+		run_test start "$TEST_DIR" "$test_s" "${ofiles[@]}"
 	done
 
 	for test_s in $TESTS_D_SET
 	do
-		run_test start "$TEST_DIR" "$test_s" "$dfiles"
+		run_test start "$TEST_DIR" "$test_s" "${dfiles[@]}"
 	done
 
 	for test_s in $TESTS_Y_SET
 	do
-		run_test start "$TEST_DIR" "$test_s" "$yfiles"
+		run_test start "$TEST_DIR" "$test_s" "${yfiles[@]}"
 	done
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
-		run_test start "$TEST_DIR" "$test_s" "$cfiles" &
+		run_test start "$TEST_DIR" "$test_s" "${cfiles[@]}" &
 		PIDS="$PIDS $!"
 	done
 
@@ -487,28 +487,28 @@ test_patch() {
 
 	run_test end "$TEST_DIR" defconfig
 	# run twice - we just want end build errors..
-	run_test end "$TEST_DIR" btest_kbuild "$ofiles"
-	run_test end "$TEST_DIR" btest_kbuild "$ofiles"
+	run_test end "$TEST_DIR" btest_kbuild "${ofiles[@]}"
+	run_test end "$TEST_DIR" btest_kbuild "${ofiles[@]}"
 
 	for test_s in $TESTS_B_SET
 	do
-		run_test end "$TEST_DIR" "$test_s" "$ofiles"
+		run_test end "$TEST_DIR" "$test_s" "${ofiles[@]}"
 	done
 
 	for test_s in $TESTS_D_SET
 	do
-		run_test end "$TEST_DIR" "$test_s" "$dfiles"
+		run_test end "$TEST_DIR" "$test_s" "${dfiles[@]}"
 	done
 
 	for test_s in $TESTS_Y_SET
 	do
-		run_test end "$TEST_DIR" "$test_s" "$yfiles"
+		run_test end "$TEST_DIR" "$test_s" "${yfiles[@]}"
 	done
 
 	PIDS=""
 	for test_s in $TESTS_C_SET
 	do
-		run_test end "$TEST_DIR" "$test_s" "$cfiles" &
+		run_test end "$TEST_DIR" "$test_s" "${cfiles[@]}" &
 		PIDS="$PIDS $!"
 	done
 
