@@ -965,6 +965,24 @@ if ! check_missing_application; then
 	exit 2
 fi
 
+if [ -z "$LOG_FILE" ]; then
+	LOG_FILE=$DEFAULT_LOG
+fi
+
+if [ -z "$TEST_B_DIR" ]; then
+	TEST_B_DIR=$DEFAULT_TMPDIR
+fi
+
+TEST_BRANCH_NAME=kernel-patch-verify.$RANDOM
+TEST_DIR=$TEST_B_DIR/$TEST_BRANCH_NAME
+PATCHD=$TEST_DIR/patches
+LOG_SUMMARY_FILE=$TEST_DIR/summary
+
+# NOW, hook on. cleanup.. we are about to start doing serious stuff.
+trap on_exit EXIT SIGINT SIGTERM
+
+mkdir -p "$TEST_DIR" "$PATCHD"
+
 GN=$(git config --get user.name)
 GE=$(git config --get user.email)
 if [ -z "$GE" ] || [ -z "$GN" ]; then
@@ -995,13 +1013,6 @@ if [ -n "$ARCH" ]; then
 	KM_A="ARCH=$ARCH"
 fi
 
-if [ -z "$LOG_FILE" ]; then
-	LOG_FILE=$DEFAULT_LOG
-fi
-
-if [ -z "$TEST_B_DIR" ]; then
-	TEST_B_DIR=$DEFAULT_TMPDIR
-fi
 KDIR=$(pwd)
 
 CURRENT_BRANCH=$(git branch | grep '^\*' | cut -d " " -f 2)
@@ -1042,16 +1053,6 @@ if [ -e "$GIT_RM_DIR" ] || [ -e "$GIT_RA_DIR" ]; then
 	exit 3
 fi
 
-
-TEST_BRANCH_NAME=kernel-patch-verify.$RANDOM
-TEST_DIR=$TEST_B_DIR/$TEST_BRANCH_NAME
-PATCHD=$TEST_DIR/patches
-LOG_SUMMARY_FILE=$TEST_DIR/summary
-
-# NOW, hook on. cleanup.. we are about to start doing serious stuff.
-trap on_exit EXIT SIGINT SIGTERM
-
-mkdir -p "$TEST_DIR" "$PATCHD"
 cp .config "$TEST_DIR"/.config 2>/dev/null
 if [ -z "$SMATCH" ]; then
 	SMATCH=$TEST_DIR/smatch
