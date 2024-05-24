@@ -983,14 +983,13 @@ trap on_exit EXIT SIGINT SIGTERM
 
 mkdir -p "$TEST_DIR" "$PATCHD"
 
-GN=$(git config --get user.name)
-GE=$(git config --get user.email)
-if [ -z "$GE" ] || [ -z "$GN" ]; then
-	echo "We need to know who you are to proceed, please check 'git config -l' and fix via:"
-	echo 'git config --global user.email "you@example.com"'
-	echo 'git config --global user.name "Your Name"'
-	exit 3
-fi
+# Set up custom git config
+export GIT_CONFIG_GLOBAL="$TEST_DIR"/gitconfig
+export GIT_CONFIG_NOSYSTEM=1
+touch "$GIT_CONFIG_GLOBAL"
+git config --global user.name "Kernel Patch Verifier"
+git config --global user.email "noreply@kernel.org"
+git config --global core.abbrev 12
 
 if [ -z "$CPUS" ]; then
 	CPUS=$DEF_CPUS
