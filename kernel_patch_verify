@@ -302,7 +302,7 @@ btest_smatch() {
 btest_cocci() {
 	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
 	if [ -n "${test_files[*]}" ]; then
-		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report "${test_files[@]}" >/dev/null
+		kmake_single C=2 CHECK="scripts/coccicheck" MODE=report "${test_files[@]}" 1>&2
 	fi
 }
 
