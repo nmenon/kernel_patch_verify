@@ -14,6 +14,7 @@ RUN apt-get update \
 		build-essential \
 		ca-certificates \
 		ccache \
+		codespell \
 		diffstat \
 		dumb-init \
 		flex \
