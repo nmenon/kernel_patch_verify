@@ -50,7 +50,7 @@ DEF_V8_CROSS_COMPILE="$ccache aarch64-none-linux-gnu-"
 DEF_V8_BUILDTARGETS="Image dtbs"
 
 # Default parameters
-APPS_NEEDED="perl make dtc sparse patch git realpath basename"
+APPS_NEEDED="perl make dtc sparse patch git realpath basename codespell"
 
 # Use all max num CPUs
 DEF_CPUS=$(grep -c '^processor' /proc/cpuinfo)
@@ -138,7 +138,7 @@ ptest_am() {
 }
 
 ptest_check() {
-	( "$KDIR"/scripts/checkpatch.pl --strict "$1" --max-line-length="$LINE_LENGTH" |grep -v "$(basename "$1")" |grep -v '^$'|grep -v '^total'|grep -v '^NOTE:' )1>&2
+	( "$KDIR"/scripts/checkpatch.pl --codespell --strict "$1" --max-line-length="$LINE_LENGTH" |grep -v "$(basename "$1")" |grep -v '^$'|grep -v '^total'|grep -v '^NOTE:' )1>&2
 }
 
 ###################
