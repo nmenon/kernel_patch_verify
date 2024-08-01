@@ -10,7 +10,7 @@ export GIT_TAG=2.45.2
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.7.0
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
-export SPARSE_TAG=v0.6.4
+export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/coccinelle/coccinelle/tags
