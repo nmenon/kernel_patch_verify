@@ -999,8 +999,8 @@ git config --global core.abbrev 12
 
 if [ -z "$CPUS" ]; then
 	CPUS=$DEF_CPUS
-	KM_CPUS=$CPUS
 fi
+KM_CPUS=$CPUS
 
 if [ -n "$CC" ]; then
 	KM_C="CC=$CC"
