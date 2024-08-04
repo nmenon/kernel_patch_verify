@@ -1077,7 +1077,7 @@ if [ -n "$TEST_TOP" ]; then
 fi
 
 if [ -n "$PATCHES" ]; then
-	cp -rf "$PATCHES" "$PATCHD"
+	cp -rf $PATCHES "$PATCHD"
 	git checkout -b "$TEST_BRANCH_NAME"
 fi
 
