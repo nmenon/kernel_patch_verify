@@ -54,7 +54,7 @@ APPS_NEEDED="perl make dtc sparse patch git realpath basename codespell"
 
 # Use all max num CPUs
 KM_CPUS=$(grep -c '^processor' /proc/cpuinfo)
-DEFAULT_LOG="./report-kernel-patch-verify.txt"
+LOG_FILE="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
 COVER_LETTER="cover-letter.[patch\|diff]"
@@ -752,7 +752,7 @@ usage() {
 		"-j CPUs: override default CPUs count with build (default is $KM_CPUS)" \
 		"-B build_target: override default build target and use provided build_target" \
 		"-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" \
-		"-l logfile: report file (defaults to $DEFAULT_LOG)" \
+		"-l logfile: report file (defaults to $LOG_FILE)" \
 		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
 		"-C: run Complete tests(WARNING: could take significant time!)" \
 		"-c defconfig: name (default uses current .config + olddefconfig)" \
@@ -969,10 +969,6 @@ fi
 if ! check_missing_application; then
 	usage "Missing apps"
 	exit 2
-fi
-
-if [ -z "$LOG_FILE" ]; then
-	LOG_FILE=$DEFAULT_LOG
 fi
 
 if [ -z "$TEST_B_DIR" ]; then
