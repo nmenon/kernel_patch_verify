@@ -53,7 +53,7 @@ DEF_V8_BUILDTARGETS="Image dtbs"
 APPS_NEEDED="perl make dtc sparse patch git realpath basename codespell"
 
 # Use all max num CPUs
-DEF_CPUS=$(grep -c '^processor' /proc/cpuinfo)
+KM_CPUS=$(grep -c '^processor' /proc/cpuinfo)
 DEFAULT_LOG="./report-kernel-patch-verify.txt"
 DEFAULT_TMPDIR="/tmp"
 
@@ -641,7 +641,7 @@ report_tests() {
 
 report_end() {
 
-	log_marker "CPUS used: $CPUS"
+	log_marker "CPUS used: $KM_CPUS"
 	log_marker "Application versions"
 	{
 		for app in $APPS_NEEDED
@@ -749,7 +749,7 @@ usage() {
 	printf '\t%s\n' \
 		"-d: if not already defined, use CROSS_COMPILE=$DEF_CROSS_COMPILE, ARCH=$DEF_ARCH, and builds for '$KP_TARGETS $DEF_BUILDTARGETS' build targets" \
 		"-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" \
-		"-j CPUs: override default CPUs count with build (default is $DEF_CPUS)" \
+		"-j CPUs: override default CPUs count with build (default is $KM_CPUS)" \
 		"-B build_target: override default build target and use provided build_target" \
 		"-T temp_dir_base: temporary directory base (default is $DEFAULT_TMPDIR)" \
 		"-l logfile: report file (defaults to $DEFAULT_LOG)" \
@@ -804,7 +804,7 @@ DTB_NOSKIP=0
 while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 	case $opt in
 	j)
-		CPUS=$OPTARG
+		KM_CPUS=$OPTARG
 	;;
 	Z)
 		DTB_NOSKIP=1
@@ -996,11 +996,6 @@ touch "$GIT_CONFIG_GLOBAL"
 git config --global user.name "Kernel Patch Verifier"
 git config --global user.email "noreply@kernel.org"
 git config --global core.abbrev 12
-
-if [ -z "$CPUS" ]; then
-	CPUS=$DEF_CPUS
-fi
-KM_CPUS=$CPUS
 
 if [ -n "$CC" ]; then
 	KM_C="CC=$CC"
