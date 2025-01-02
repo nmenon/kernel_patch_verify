@@ -205,7 +205,9 @@ ytest_dtbs_check() {
 # property_name_char_strict: requires fixes all the way to bindings fixes
 #	Which gets tricky to fix in a platform specific manner, so we skip
 #	by default unless -Z is used.
-DTB_FILTER_LIST="property_name_chars_strict"
+# dr_mode, bus_freq, mmc-ddr-[0-9]_[0-9]v, mmc-hs[0-9]00-[0-9]_[0-9]v are already standards
+# snps,dis_u3_susphy_quirk is new, but still a standard
+DTB_FILTER_LIST="property_name_chars_strict|dr_mode|bus_freq|mmc-ddr-[0-9]_[0-9]v|mmc-hs[0-9]00-[0-9]_[0-9]v|snps,dis_u3_susphy_quirk"
 dtest_build_dtb() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
@@ -222,7 +224,7 @@ dtest_build_dtb() {
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
-		( ( ( kmake_single W=2 dtbs > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$'|grep -v "$DTB_FILTER_LIST" ) 1>&2
+		( ( ( kmake_single W=2 dtbs > /dev/null ) 2>&1 )|cut -d ':' -f1,4- | grep -v '^make$'|grep -v -E "$DTB_FILTER_LIST" |  grep -v "__overlay__: Character '_' not recommended in node name") 1>&2
 	fi
 }
 
