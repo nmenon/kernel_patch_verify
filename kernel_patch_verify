@@ -271,6 +271,14 @@ dtest_dtbs_check() {
 	fi
 }
 
+dtest_lower_case() {
+	readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
+	if [ -z "${test_files[*]}" ]; then
+		return
+	fi
+	grep '0x[0-9A-Z][0-9A-Z]*[, >]' "${test_files[@]}" | grep -v '0x[0-9][0-9]*[, >]' 1>&2
+}
+
 ###################
 # Basic build test
 btest_mrproper() {
@@ -431,7 +439,7 @@ test_patch() {
 		TESTS_Y_SET="$TESTS_Y_SET ytest_dtbs_check"
 	fi
 	# Run DTB tests
-	TESTS_D_SET="dtest_build_dtb dtest_build_dtb_to_dts"
+	TESTS_D_SET="dtest_build_dtb dtest_build_dtb_to_dts dtest_lower_case"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		# we need to introduce dtbs_check in a manner which does'nt take time..
 		TESTS_D_SET="$TESTS_D_SET dtest_dtbs_check"
