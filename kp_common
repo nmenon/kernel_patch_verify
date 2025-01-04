@@ -73,6 +73,7 @@ fi
 # list of paths to append to the PATH variable in the container
 extra_paths=(
 	/workdir/scripts/dtc
+	/opt/cross-gcc-linux-14/bin
 	/opt/cross-gcc-linux-13/bin
 	/opt/cross-gcc-linux-12/bin
 	/opt/cross-gcc-linux-11/bin

@@ -1,3 +1,4 @@
+export PATH="$PATH:/opt/cross-gcc-linux-14/bin"
 export PATH="$PATH:/opt/cross-gcc-linux-13/bin"
 export PATH="$PATH:/opt/cross-gcc-linux-12/bin"
 export PATH="$PATH:/opt/cross-gcc-linux-11/bin"
