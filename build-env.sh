@@ -116,12 +116,12 @@ download_and_install_armgcc_64()
 {
 	local FILE URL
 	FILE='aarch64-gcc.tar.xz'
-	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-aarch64-none-linux-gnu.tar.xz?revision=61c3be5d-5175-4db6-9030-b565aae9f766&la=en&hash=0A37024B42028A9616F56A51C2D20755C5EBBCD7"
+	URL="https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
 
 	cd /tmp
-	mkdir -p /opt/cross-gcc-linux-9/
+	mkdir -p /opt/cross-gcc-linux-14/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-14/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
@@ -129,12 +129,12 @@ download_and_install_armgcc_32()
 {
 	local FILE URL
 	FILE='aarch32-gcc.tar.xz'
-	URL="https://developer.arm.com/-/media/Files/downloads/gnu-a/9.2-2019.12/binrel/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf.tar.xz?revision=fed31ee5-2ed7-40c8-9e0e-474299a3c4ac&la=en&hash=76DAF56606E7CB66CC5B5B33D8FB90D9F24C9D20"
+	URL="https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-linux-gnueabihf.tar.xz"
 
 	cd /tmp
-	mkdir -p /opt/cross-gcc-linux-9/
+	mkdir -p /opt/cross-gcc-linux-14/
 	aria2c "${ARIA_OPTS[@]}" -o "$FILE" "$URL"
-	tar -C /opt/cross-gcc-linux-9/ --strip-components=1 -xf "$FILE"
+	tar -C /opt/cross-gcc-linux-14/ --strip-components=1 -xf "$FILE"
 	rm -f /tmp/"$FILE"
 }
 
@@ -148,5 +148,5 @@ if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64
 	download_and_install_armgcc_32
 else
-	echo "Skipping install GCC. INSTALL_GCC!=1. make sure that /opt/cross-gcc-linux-9/bin has aarch64-none-linux-gnu- and arm-none-linux-gnueabihf-"
+	echo "Skipping install GCC. INSTALL_GCC!=1. make sure that /opt/cross-gcc-linux-14/bin has aarch64-none-linux-gnu- and arm-none-linux-gnueabihf-"
 fi
