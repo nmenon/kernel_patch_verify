@@ -57,6 +57,67 @@ For folks wanting to write python or perl alternatives, please, go ahead and
 create your own tool, just dont ask me to even touch python ;) - this remains in
 bash.
 
+QUICK START NOTES:
+==================
+
+Easiest way of getting started is to use the docker container, at least most
+of the tools are pre-installed in the package (exception of gcc).
+
+There are two scripts to use when you are in the kernel directory:
+
+* kpv: This is a wrapper script for kernel\_patch\_verify
+* kps: This drops you to the shell using the same environment that kpv runs.
+
+You can either provide a softlink or use this git repo in your $PATH variable
+to operate.
+
+Side note: LLVM is the only pre-installed cross compiler installed in the
+docker container. GCC mount paths are in kp\_common script - see function
+`extra_paths` - customize it as needed for your local environment.
+
+An trivialized example for 1 patch:
+
+```
+cd ~/src/linux
+git checkout master
+git pull
+git checkout -b test_branch
+git am ~/src/my_patches/something_patch
+
+# do build and local functional testing - use kernel_self_test if you can..
+
+# visually review the patch again for coding style, logic improvements etc.
+
+# Use prepackaged LLVM to run the checks
+kpv -V -C -L -n 1
+
+# go check and identify the issues found
+vim report-kernel-patch-verify.txt
+
+# do my fixes (alternatively - i can build and check the fixups in the kps env)
+
+# Final checkup - functional tests
+
+# Final confirmation report checks
+kpv -V -C -L -n 1
+
+# go check and verify the issues are all closed out
+vim report-kernel-patch-verify.txt
+
+# Generate the patch
+git format-patch-M -C -o . -1
+
+# visually review the patch once again for coding style, logic improvements etc.
+vim 0001-abc.patch
+
+# run get_maintainer script to identify who to send the patch to
+./scripts/get_maintainer.pl ./0001-abc.patch
+
+# Send the patch
+git send-email --to maintainer1@kernel.org --cc list@vger.kernel.org 0001-abc.patch
+
+```
+
 INSTALL NOTES:
 ==============
 
