@@ -228,6 +228,27 @@ dtest_build_dtb() {
 	fi
 }
 
+# We use dtb- += test-dtb.dtb to allow for building various devices tree overlays
+# However this cannot be tested normally without setting CONFIG_OF_ALL_DTBS
+# Unfortunately CONFIG_OF_ALL_DTBS will build every single dtb in platform
+# Instead, we hack the Makefile to replace dtb- with dtb-y to force build
+# from a test perspective
+dtest_hack_for_test_overlays() {
+	D=$1
+	DTBMAKEFILE="$D/Makefile"
+	if [ -f "$DTBMAKEFILE" ]; then
+		sed -i -e "s/dtb- /dtb-y /g" $DTBMAKEFILE
+	fi
+}
+
+dtest_revert_hack_for_test_overlays() {
+	D=$1
+	DTBMAKEFILE="$D/Makefile"
+	if [ -f "$DTBMAKEFILE" ]; then
+		git checkout $DTBMAKEFILE
+	fi
+}
+
 dtest_build_dtb_to_dts() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		readarray -t test_files <<< "$(get_sorted_existing_files "$@")"
@@ -237,6 +258,7 @@ dtest_build_dtb_to_dts() {
 		for test_file in "${test_files[@]}"
 		do
 			D=$(dirname "$test_file")
+			dtest_hack_for_test_overlays $D
 			rm -f "$D"/*.dtb
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
@@ -253,6 +275,10 @@ dtest_build_dtb_to_dts() {
 		do
 			dtc -I dtb -O dts "$dtb" >/dev/null
 		done
+		for test_file in "${test_files[@]}"
+		do
+			dtest_revert_hack_for_test_overlays $D
+		done
 	fi
 }
 
@@ -265,11 +291,16 @@ dtest_dtbs_check() {
 		for test_file in "${test_files[@]}"
 		do
 			D=$(dirname "$test_file")
+			dtest_hack_for_test_overlays $D
 			rm -f "$D"/*.dtb "$D"/*.yaml
 		done
 		rm -f Documentation/devicetree/bindings/processed-schema-examples.json
 		find Documentation/devicetree -iname "*.example.*" -print0 | xargs -0 rm -f 2>/dev/null >/dev/null
 		( ( ( make -j"$KM_CPUS" dtbs_check > /dev/null ) 2>&1 )|grep -v '^\s\s*'|sort -u ) 1>&2
+		for test_file in "${test_files[@]}"
+		do
+			dtest_revert_hack_for_test_overlays $D
+		done
 	fi
 }
 
