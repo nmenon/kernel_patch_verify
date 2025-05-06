@@ -82,6 +82,13 @@ kmake() {
 	make $KM_A $KP_PARAMS "$KM_C" $KM_L -j$KM_CPUS $@
 }
 
+to_time() {
+	if [[ "$1" =~ ^-?[0-9]+$ ]]; then
+		date -d@$1 -u "+%H hrs, %M mins, %S seconds"
+	else
+		echo $1
+	fi
+}
 ###################
 # Run generic test operation
 run_test() {
@@ -1141,7 +1148,7 @@ DELTAP="unknown"
 STARTP_SEC=$(date "+%s")
 for patch in $PATCHES
 do
-	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" "$(basename "$patch")" "$DELTAP seconds elapsed, estimated: remaining $ETA_REMAIN  / total $EST_TOTAL seconds"
+	echo "Testing Patch ($PATCH_NUM/$PATCHCOUNT):" "$(basename "$patch")" "$(to_time $DELTAP) elapsed, estimated: remaining $(to_time $ETA_REMAIN) / total $(to_time $EST_TOTAL)"
 	test_patch "$patch"
 	report_patch "$patch"
 	NOW_SEC=$(date "+%s")
@@ -1153,5 +1160,12 @@ do
 done
 
 tests_end
+
+NOW_SEC=$(date "+%s")
+DELTAP=$((NOW_SEC - STARTP_SEC))
+echo
+echo "Tests Complete. Time taken: $(to_time $DELTAP)"
+echo
+
 report_tests_end
 report_end
