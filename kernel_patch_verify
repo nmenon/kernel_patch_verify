@@ -362,6 +362,10 @@ btest_include() {
 	kmake_single includecheck 1>&2
 }
 
+btest_refcheckdocs() {
+	kmake_single refcheckdocs 1>&2
+}
+
 btest_kbuild() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		kmake C=1 $KP_TARGETS "$MODULES" > /dev/null
@@ -396,7 +400,7 @@ tests_start() {
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_ALL_SET="$TESTS_ALL_SET build_all"
 		if [ $UBOOT_TESTING -eq 0 ]; then
-			TESTS_ALL1_SET="btest_stack btest_include"
+			TESTS_ALL1_SET="btest_stack btest_include btest_refcheckdocs"
 		fi
 	fi
 	echo "Sequential tests to run: $TESTS_ALL_SET"
