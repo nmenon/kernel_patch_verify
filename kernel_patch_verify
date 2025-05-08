@@ -791,7 +791,8 @@ APP_NAME=$0
 ###################
 # Help
 usage() {
-	printf '%s\n' "$*"
+	# Red background, white foreground
+	echo -e "\e[1m\e[97m\e[101mError: $*\e[0m"
 
 	printf '%s\n' \
 		'' \
