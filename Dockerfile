@@ -52,6 +52,7 @@ RUN apt-get update \
 		wget \
 		xz-utils \
 		yamllint \
+		kmod \
 		pixz \
 	&& echo "**** cleanup ****" \
 	&& apt-get autoremove \
