@@ -29,9 +29,9 @@ RUN apt-get update \
 		libmenhir-ocaml-dev \
 		libmpc-dev \
 		libparmap-ocaml-dev \
-		libpcre-ocaml-dev \
-		libpython3.11 \
-		libpython3.11-dev \
+		libpcre2-ocaml-dev \
+		libpython3.13 \
+		libpython3.13-dev \
 		libsqlite3-dev \
 		libssl-dev \
 		libyaml-dev \
@@ -55,8 +55,8 @@ RUN apt-get update \
 		kmod \
 		pixz \
 	&& echo "**** cleanup ****" \
-	&& apt-get autoremove \
-	&& apt-get clean \
+	&& apt-get autoremove -y\
+	&& apt-get clean -y\
 	&& rm -rf \
 		/tmp/* \
 		/var/lib/apt/lists/* \
@@ -67,7 +67,7 @@ RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
 	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
 
 # Publish the source repository
-LABEL org.opencontainers.image.source https://github.com/nmenon/kernel_patch_verify
+LABEL org.opencontainers.image.source=https://github.com/nmenon/kernel_patch_verify
 
 # Add our llvm repo configs
 COPY llvm-config /
@@ -77,8 +77,8 @@ RUN apt-get update \
 		clang \
 		lld \
 	&& echo "**** cleanup ****" \
-	&& apt-get autoremove \
-	&& apt-get clean \
+	&& apt-get autoremove -y\
+	&& apt-get clean -y\
 	&& rm -rf \
 		/tmp/* \
 		/var/lib/apt/lists/* \

@@ -1,6 +1,6 @@
 .PHONY: all
 
-BASE_DISTRO ?= debian:stable-slim
+BASE_DISTRO ?= ghcr.io/linuxcontainers/debian-slim:stable
 IMAGE_TOBUILD ?= arm-kernel-dev
 
 REPO ?=
