@@ -46,6 +46,7 @@ RUN apt-get update \
 		python3 \
 		python3-dev \
 		python3-pip \
+		python3-venv \
 		python3-ruamel.yaml \
 		sqlite3 \
 		swig \
@@ -62,6 +63,9 @@ RUN apt-get update \
 		/var/lib/apt/lists/* \
 		/var/tmp/* \
 		/var/log/*
+
+RUN python3 -m venv /opt/venv
+RUN . /opt/venv/bin/activate
 
 RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
 	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh

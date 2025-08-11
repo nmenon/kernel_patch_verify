@@ -19,6 +19,10 @@ export COCCI_TAG=1.3.0
 export DTSCHEMA_REV=v2025.06.1
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
+# Get latest pip and packages in the "virtual env"
+if [ -f "/opt/venv/bin/activate" ]; then
+	. /opt/venv/bin/activate
+fi
 
 download_build_install_git()
 {
@@ -42,14 +46,15 @@ download_build_install_git()
 
 download_build_install_python_deps()
 {
-	# Get latest pip
-	python -m pip install --upgrade  --break-system-packages pip
-	python -m pip install --upgrade  --break-system-packages setuptools
-	python -m pip install --upgrade  --break-system-packages six jsonschema
+	python -m pip install --upgrade pip
+	python -m pip install --upgrade setuptools
+	python -m pip install --upgrade six jsonschema
+	python -m pip install --upgrade six jsonschema
+	python -m pip install --upgrade ruamel.yaml
 	# scripts/spdxcheck.py dependencies
-	python -m pip install --upgrade  --break-system-packages ply gitpython yamllint rfc3987 pylibfdt
-	python -m pip install  --break-system-packages git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
-	rm -rf "/tmp/.cache/"
+	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt
+	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
+	rm -rf "/tmp/.cache/"  /tmp/get-pip.py
 }
 
 clone_and_cd()
