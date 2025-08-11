@@ -13,8 +13,6 @@ export DTC_TAG=v1.7.2
 export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
-# https://github.com/coccinelle/coccinelle/tags
-export COCCI_TAG=1.3.0
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2025.06.1
 
@@ -103,20 +101,6 @@ download_build_install_smatch()
 	rm -rf /tmp/"$FILE"
 }
 
-download_build_install_coccinelle()
-{
-	local FILE URL
-	FILE='coccinelle'
-	URL="https://github.com/coccinelle/coccinelle.git"
-
-	clone_and_cd "$COCCI_TAG" "$URL" "$FILE"
-	./autogen
-	./configure --prefix=/usr/local
-	make install
-	cd /tmp
-	rm -rf /tmp/"$FILE"
-}
-
 download_and_install_armgcc_64()
 {
 	local FILE URL
@@ -148,7 +132,6 @@ download_build_install_python_deps
 download_build_install_dtc
 download_build_install_smatch
 download_build_install_sparse
-download_build_install_coccinelle
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64
 	download_and_install_armgcc_32

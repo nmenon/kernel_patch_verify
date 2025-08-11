@@ -26,10 +26,7 @@ RUN apt-get update \
 		libelf-dev \
 		libexpat1-dev \
 		libgmp-dev \
-		libmenhir-ocaml-dev \
 		libmpc-dev \
-		libparmap-ocaml-dev \
-		libpcre2-ocaml-dev \
 		libpython3.13 \
 		libpython3.13-dev \
 		libsqlite3-dev \
@@ -55,6 +52,7 @@ RUN apt-get update \
 		yamllint \
 		kmod \
 		pixz \
+		coccinelle \
 	&& echo "**** cleanup ****" \
 	&& apt-get autoremove -y\
 	&& apt-get clean -y\
