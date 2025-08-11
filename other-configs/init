@@ -36,8 +36,8 @@ else
 	echo "Not able to detect UID/GID for remapping!"
 fi
 
-if [ -f "/opt/venv/bin/activate" ]; then
-	. /opt/venv/bin/activate
+if [ -f "/usr/local/venv/bin/activate" ]; then
+	. /usr/local/venv/bin/activate
 fi
 
 if [ "$(id -u)" == "$(id -u developer)" ]; then

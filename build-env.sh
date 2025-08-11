@@ -18,8 +18,8 @@ export DTSCHEMA_REV=v2025.06.1
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
-if [ -f "/opt/venv/bin/activate" ]; then
-	. /opt/venv/bin/activate
+if [ -f "/usr/local/venv/bin/activate" ]; then
+	. /usr/local/venv/bin/activate
 fi
 
 download_build_install_git()

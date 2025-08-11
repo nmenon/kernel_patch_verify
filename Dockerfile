@@ -62,8 +62,8 @@ RUN apt-get update \
 		/var/tmp/* \
 		/var/log/*
 
-RUN python3 -m venv /opt/venv
-RUN . /opt/venv/bin/activate
+RUN python3 -m venv /usr/local/venv
+RUN . /usr/local/venv/bin/activate
 
 RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
 	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
