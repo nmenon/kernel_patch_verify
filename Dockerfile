@@ -89,6 +89,10 @@ RUN apt-get update \
 
 COPY other-configs/ /
 
+# HACK for codespell path change in trixie
+RUN mkdir -p /usr/share/codespell \
+	&& ln -s /usr/lib/python3/dist-packages/codespell_lib/data/dictionary.txt /usr/share/codespell/dictionary.txt
+
 RUN echo "**** create developer user and make our folders ****" \
 	&& useradd -u 1000 -U -d /config -s /bin/false developer \
 	&& usermod -G users developer \
