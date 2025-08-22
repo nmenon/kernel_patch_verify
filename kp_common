@@ -81,4 +81,9 @@ extra_paths=(
 	/opt/cross-gcc-linux-9/bin
 )
 
+# Pass OpenAPI key if defined to the container environment for PatchWise
+if [ -n "${OPENAI_API_KEY}" ]; then
+	DOCKER_ARGS+=(-e OPEN_API_KEY="${OPENAI_API_KEY}")
+fi
+
 KP_PATH=$(IFS=:; printf '%s' "${extra_paths[*]}")

@@ -77,7 +77,10 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		llvm \
 		clang \
+		clangd \
 		lld \
+	&& . /usr/local/venv/bin/activate \
+	&& patchwise --install \
 	&& echo "**** cleanup ****" \
 	&& apt-get autoremove -y\
 	&& apt-get clean -y\
