@@ -53,7 +53,7 @@ download_build_install_python_deps()
 	# Install patchwise and it's dependencies
 	python -m pip install patchwise
 	# HACK - Just dont stick around with 20.0.0 clang.. use the bleeding edge..
-	find /usr/local/venv/lib/python3*/site-packages/patchwise -iname *.py|xargs sed -ie "s/20.0.0/23.0.0/g"
+	#find /usr/local/venv/lib/python3*/site-packages/patchwise -iname *.py|xargs sed -ie "s/20.0.0/23.0.0/g"
 	rm -rf "/tmp/.cache/"  /tmp/get-pip.py
 }
 
