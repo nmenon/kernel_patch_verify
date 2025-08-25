@@ -707,6 +707,10 @@ report_end() {
 				app=$SMATCH
 			fi
 			echo "version of $app:"
+			if [ "$app" = "patchwise" ]; then
+				python3 -m pip list|grep 'patchwise'
+				continue
+			fi
 			which "$app" 2>&1
 			"$app" --version 2>&1
 			echo
