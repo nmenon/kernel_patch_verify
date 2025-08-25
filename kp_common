@@ -42,6 +42,7 @@ DOCKER_ARGS=()
 DOCKER_ARGS+=(-v /tmp:/tmp)
 DOCKER_ARGS+=(-v /opt:/opt)
 DOCKER_ARGS+=(-v "$CCACHEDIR":/ccache)
+# DOCKER_ARGS+=(-v "$(dirname "$(readlink -f "$0")")/kernel_patch_verify":/usr/bin/kernel_patch_verify)
 
 # Check if current directory is a git directory
 if ! git rev-parse --is-inside-work-tree > /dev/null; then
