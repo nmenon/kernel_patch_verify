@@ -1,2 +1,2 @@
-deb [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/trixie/ llvm-toolchain-trixie main
-deb-src [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/trixie/ llvm-toolchain-trixie main
+deb [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/trixie/ llvm-toolchain-trixie-20 main
+deb-src [signed-by=/etc/apt/trusted.gpg.d/apt.llvm.org.asc] http://apt.llvm.org/trixie/ llvm-toolchain-trixie-20 main
