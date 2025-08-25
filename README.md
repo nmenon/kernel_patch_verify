@@ -222,6 +222,22 @@ Example usages:
     ./kernel_patch_verify -d -1
     ```
 
+Notes on patchwise
+==================
+
+Qualcomm released https://github.com/qualcomm/PatchWise which is an awesome tool
+to get some basic automated reviews of the patches done prior to maintainers or
+other reviewers reviewing stuff.
+
+To use this use the `-P` option. This requires at least `OPENAI_API_KEY` variable
+to be defined, however, you may also use the additional optional variables:
+* `OPENAI_API_MODEL` point to appropriate model you'd like to use.
+* `OPENAI_API_PROVIDER` if your company uses llm gateways of any form
+
+This test can execute multiple tests already performed, but it is just additional
+review tool that is available. Expect to see some significant time spend in this
+check.
+
 Some script design stuff:
 =========================
 

@@ -681,6 +681,11 @@ report_tests() {
 			fi
 		done
 	fi
+	if [ -f "$LOG_DIR/patch-wise.log" ]; then
+		log_marker "Patchwise Report:"
+		cat "$LOG_DIR/patch-wise.log" >> "$LOG_FILE"
+	fi
+
 	if [ -z "$FAIL_TEST" ]; then
 		logs_me "Passed(ALL): $PASS_TEST"
 	else
@@ -796,7 +801,7 @@ usage() {
 
 	printf '%s\n' \
 		'' \
-		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
 		''
 
 	printf '\t%s\n' \
@@ -808,6 +813,7 @@ usage() {
 		"-l logfile: report file (defaults to $LOG_FILE)" \
 		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
 		"-C: run Complete tests(WARNING: could take significant time!)" \
+		"-P: run patchwise tests(WARNING: could take significant time!)" \
 		"-c defconfig: name (default uses current .config + olddefconfig)" \
 		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
 		"-n N: test the tip of current branch with 'N' number of patches" \
@@ -854,7 +860,7 @@ usage() {
 
 ORIDE=0
 DTB_NOSKIP=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZLP" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -934,6 +940,14 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZL" opt; do
 		MODULES=modules
 		if [ "$UBOOT_TESTING" -eq 1 ]; then
 			usage "Cannot run complete tests yet on u-boot"
+			exit 1
+		fi
+	;;
+	P)
+		PATCHWISE=1
+		APPS_NEEDED="$APPS_NEEDED patchwise"
+		if [ -z "$OPENAI_API_KEY" ]; then
+			usage "Cannot run patchwise without OPENAI_API_KEY"
 			exit 1
 		fi
 	;;
@@ -1165,6 +1179,27 @@ do
 done
 
 tests_end
+
+if [ "$PATCHWISE" -eq 1 ]; then
+	PATCHWISE_ARGS=""
+	if [ "$OPENAI_API_PROVIDER" ]; then
+		PATCHWISE_ARGS="$PATCHWISE_ARGS --provider=$OPENAI_API_PROVIDER"
+	fi
+	if [ "$OPENAI_API_MODEL" ]; then
+		PATCHWISE_ARGS="$PATCHWISE_ARGS --model=$OPENAI_API_MODEL"
+	fi
+	PATCHWISE_ARGS="$PATCHWISE_ARGS --repo-path . --commits=HEAD...HEAD~$PATCHCOUNT"
+	echo "Starting Patchwise for $PATCHCOUNT patches.. Please be patient"
+	if [ -n "$CURRENT_BRANCH" ]; then
+		echo "Restoring to $CURRENT_BRANCH branch"
+		git reset --hard 2>/dev/null
+		git checkout "$CURRENT_BRANCH" 2>/dev/null
+	fi
+	if [ -d '/tmp/patchwise/sandbox/kernel' ]; then
+		rm -rf /tmp/patchwise/sandbox/kernel
+	fi
+	patchwise $PATCHWISE_ARGS --log-file "$LOG_DIR/patch-wise.log"
+fi
 
 NOW_SEC=$(date "+%s")
 DELTAP=$((NOW_SEC - STARTP_SEC))
