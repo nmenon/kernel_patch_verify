@@ -46,8 +46,6 @@ download_build_install_python_deps()
 {
 	python -m pip install --upgrade pip
 	python -m pip install --upgrade setuptools
-	python -m pip install --upgrade six jsonschema
-	python -m pip install --upgrade six jsonschema
 	python -m pip install --upgrade ruamel.yaml
 	# scripts/spdxcheck.py dependencies
 	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt
