@@ -709,6 +709,7 @@ report_end() {
 			echo "version of $app:"
 			if [ "$app" = "patchwise" ]; then
 				python3 -m pip list|grep 'patchwise'
+				echo "MODEL used: $OPENAI_API_MODEL"
 				continue
 			fi
 			which "$app" 2>&1
