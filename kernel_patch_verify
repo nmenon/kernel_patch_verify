@@ -784,7 +784,9 @@ check_missing_application() {
 recommend_missing_application() {
 	check_missing_application
 	if [ -n "$APPS_MISSING" ]; then
-		echo "Missing Applications in system: $APPS_MISSING" >&2
+		# Red background, white foreground
+		echo -e "\e[1m\e[97m\e[101mError: Missing Applications in system: $APPS_MISSING\e[0m" >&2
+		echo "" >&2
 		# Lets see if we can recommend an application
 		if [ -x /usr/lib/command-not-found ]; then
 			for i in $APPS_MISSING
@@ -792,6 +794,8 @@ recommend_missing_application() {
 				/usr/lib/command-not-found --no-failure-msg "$i"
 			done
 		fi
+		echo "" >&2
+		echo "Please install the missing applications and try again." >&2
 		return 2
 	fi
 	return 0
@@ -1038,8 +1042,7 @@ if [ -n "${CROSS_COMPILE}" ]; then
 	APPS_NEEDED="$APPS_NEEDED ${CROSS_COMPILE}gcc"
 fi
 
-if ! check_missing_application; then
-	usage "Missing apps"
+if ! recommend_missing_application; then
 	exit 2
 fi
 
