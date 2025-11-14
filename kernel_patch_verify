@@ -73,13 +73,13 @@ fi
 kmake_single() {
 	# XXX: kmake operations depend on variable expansion- do not quote variables here.
 	# Except for compiler option since ccache will be involved
-	make $KM_A $KP_PARAMS "$KM_C" $KM_L -j1 $@
+	make $KM_A $KP_PARAMS "$KM_C" $KM_L $KM_O -j1 $@
 }
 
 kmake() {
 	# XXX: kmake operations depend on variable expansion- do not quote variables here.
 	# Except for compiler option since ccache will be involved
-	make $KM_A $KP_PARAMS "$KM_C" $KM_L -j$KM_CPUS $@
+	make $KM_A $KP_PARAMS "$KM_C" $KM_L $KM_O -j$KM_CPUS $@
 }
 
 to_time() {
@@ -380,7 +380,11 @@ defconfig() {
 	if [ -n "$DEFCONFIG" ]; then
 		kmake "$DEFCONFIG" >/dev/null
 	else
-		cp "$TEST_DIR"/.config .config
+		if [ -n "$BUILD_OUTPUT_DIR" ]; then
+			cp "$TEST_DIR"/.config "$BUILD_OUTPUT_DIR"/.config
+		else
+			cp "$TEST_DIR"/.config .config
+		fi
 		kmake olddefconfig >/dev/null
 	fi
 }
@@ -597,7 +601,11 @@ on_exit() {
 	fi
 	if [ -f "$TEST_DIR/.config" ]; then
 		echo "restoring .config"
-		cp "$TEST_DIR"/.config .config
+		if [ -n "$BUILD_OUTPUT_DIR" ]; then
+			cp "$TEST_DIR"/.config "$BUILD_OUTPUT_DIR"/.config
+		else
+			cp "$TEST_DIR"/.config .config
+		fi
 	fi
 	if [ -n "$TEST_DIR" ] && [ -d "$TEST_DIR" ]; then
 		echo "Removing temp dir"
@@ -810,7 +818,7 @@ usage() {
 
 	printf '%s\n' \
 		'' \
-		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
 		''
 
 	printf '\t%s\n' \
@@ -818,6 +826,7 @@ usage() {
 		"-V: (default armV8 targets) if not already defined, use CROSS_COMPILE=$DEF_V8_CROSS_COMPILE, ARCH=$DEF_V8_ARCH, and builds for '$KP_TARGETS $DEF_V8_BUILDTARGETS' build targets" \
 		"-j CPUs: override default CPUs count with build (default is $KM_CPUS)" \
 		"-B build_target: override default build target and use provided build_target" \
+		"-O build_output_dir: kernel build output directory (for separate build directory with O=)" \
 		"-T temp_dir_base: temporary directory base (default is $TEST_B_DIR)" \
 		"-l logfile: report file (defaults to $LOG_FILE)" \
 		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
@@ -858,7 +867,9 @@ usage() {
 		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
 		"$APP_NAME -d -1" \
 		"Example usage 8: on a cross_compiled ARM build using defaults,15 patches" \
-		"$APP_NAME -d -n 15"
+		"$APP_NAME -d -n 15" \
+		"Example usage 9: verify last patch using separate build output directory" \
+		"$APP_NAME -O /path/to/build/output -1"
 
 	printf '%s\n' ''
 
@@ -869,7 +880,8 @@ usage() {
 
 ORIDE=0
 DTB_NOSKIP=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZLP" opt; do
+BUILD_OUTPUT_DIR=""
+while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789CdDUVZLP" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -939,6 +951,13 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:123456789CdDUVZLP" opt; do
 		fi
 		if [ ! -w "$TEST_B_DIR" ]; then
 			usage "$TEST_B_DIR is not writable?"
+			exit 1
+		fi
+	;;
+	O)
+		BUILD_OUTPUT_DIR=$OPTARG
+		if [ ! -d "$BUILD_OUTPUT_DIR" ]; then
+			usage "Build output directory $BUILD_OUTPUT_DIR does not exist"
 			exit 1
 		fi
 	;;
@@ -1080,6 +1099,10 @@ if [ -n "$ARCH" ]; then
 	KM_A="ARCH=$ARCH"
 fi
 
+if [ -n "$BUILD_OUTPUT_DIR" ]; then
+	KM_O="O=$BUILD_OUTPUT_DIR"
+fi
+
 KDIR=$(pwd)
 
 CURRENT_BRANCH=$(git branch | grep '^\*' | cut -d " " -f 2)
@@ -1096,7 +1119,12 @@ if [ -n "$TEST_BRANCH" ] && [ "$TEST_BRANCH" = "$BASE_BRANCH" ]; then
 	exit 3
 fi
 
-if [ ! -e ".config" ] && [ -z "$DEFCONFIG" ]; then
+CONFIG_FILE=".config"
+if [ -n "$BUILD_OUTPUT_DIR" ]; then
+	CONFIG_FILE="$BUILD_OUTPUT_DIR/.config"
+fi
+
+if [ ! -e "$CONFIG_FILE" ] && [ -z "$DEFCONFIG" ]; then
 	usage "No default .config exists nor is a defconfig specified with -c"
 	exit 3
 fi
@@ -1120,7 +1148,7 @@ if [ -e "$GIT_RM_DIR" ] || [ -e "$GIT_RA_DIR" ]; then
 	exit 3
 fi
 
-cp .config "$TEST_DIR"/.config 2>/dev/null
+cp "$CONFIG_FILE" "$TEST_DIR"/.config 2>/dev/null
 if [ -z "$SMATCH" ]; then
 	SMATCH=$TEST_DIR/smatch
 	echo -e '#!/bin/bash\nsmatch -p=kernel $@'> "$SMATCH"
