@@ -252,7 +252,7 @@ dtest_revert_hack_for_test_overlays() {
 	D=$1
 	DTBMAKEFILE="$D/Makefile"
 	if [ -f "$DTBMAKEFILE" ]; then
-		git checkout $DTBMAKEFILE
+		git checkout $DTBMAKEFILE 2>/dev/null >/dev/null
 	fi
 }
 
