@@ -881,6 +881,7 @@ usage() {
 ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
+PATCHWISE=0
 while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789CdDUVZLP" opt; do
 	case $opt in
 	j)
