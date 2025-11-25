@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=2.50.1
+export GIT_TAG=2.52.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git
 export DTC_TAG=v1.7.2
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
@@ -14,7 +14,7 @@ export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2025.08
+export DTSCHEMA_REV=master
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
