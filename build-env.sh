@@ -14,7 +14,7 @@ export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=master
+export DTSCHEMA_REV=v2025.12
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
