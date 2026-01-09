@@ -85,6 +85,7 @@ extra_paths=(
 # Pass OpenAPI key if defined to the container environment for PatchWise
 if [ -n "${OPENAI_API_KEY}" ]; then
 	DOCKER_ARGS+=(-e OPENAI_API_KEY="${OPENAI_API_KEY}")
+	DOCKER_ARGS+=(-e ANTHROPIC_API_KEY="${OPENAI_API_KEY}")
 	if [ -n "${OPENAI_API_PROVIDER}" ]; then
 		DOCKER_ARGS+=(-e OPENAI_API_PROVIDER="${OPENAI_API_PROVIDER}")
 	fi
