@@ -1218,14 +1218,6 @@ done
 tests_end
 
 if [ "$PATCHWISE" -eq 1 ]; then
-	PATCHWISE_ARGS=""
-	if [ "$OPENAI_API_PROVIDER" ]; then
-		PATCHWISE_ARGS="$PATCHWISE_ARGS --provider=$OPENAI_API_PROVIDER"
-	fi
-	if [ "$OPENAI_API_MODEL" ]; then
-		PATCHWISE_ARGS="$PATCHWISE_ARGS --model=$OPENAI_API_MODEL"
-	fi
-	PATCHWISE_ARGS="$PATCHWISE_ARGS --repo-path . --commits=HEAD...HEAD~$PATCHCOUNT"
 	echo "Starting Patchwise for $PATCHCOUNT patches.. Please be patient"
 	if [ -n "$CURRENT_BRANCH" ]; then
 		echo "Restoring to $CURRENT_BRANCH branch"
@@ -1235,6 +1227,15 @@ if [ "$PATCHWISE" -eq 1 ]; then
 	if [ -d '/tmp/patchwise/sandbox/kernel' ]; then
 		rm -rf /tmp/patchwise/sandbox/kernel
 	fi
+	PATCHWISE_ARGS=""
+	if [ "$OPENAI_API_PROVIDER" ]; then
+		PATCHWISE_ARGS="$PATCHWISE_ARGS --provider=$OPENAI_API_PROVIDER"
+	fi
+	if [ "$OPENAI_API_MODEL" ]; then
+		PATCHWISE_ARGS="$PATCHWISE_ARGS --model=$OPENAI_API_MODEL"
+	fi
+	COMMITS=`git log --abbrev=40 --oneline HEAD...HEAD~$PATCHCOUNT|tac|cut -d ' ' -f1|xargs echo`
+	PATCHWISE_ARGS="$PATCHWISE_ARGS --repo-path . --commits $COMMITS"
 	patchwise $PATCHWISE_ARGS --log-file "$LOG_DIR/patch-wise.log"
 fi
 
