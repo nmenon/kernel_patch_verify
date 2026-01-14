@@ -1227,7 +1227,7 @@ if [ "$PATCHWISE" -eq 1 ]; then
 	if [ -d '/tmp/patchwise/sandbox/kernel' ]; then
 		rm -rf /tmp/patchwise/sandbox/kernel
 	fi
-	PATCHWISE_ARGS=""
+	PATCHWISE_ARGS="--reviews AiCodeReview LLMCommitAudit"
 	if [ "$OPENAI_API_PROVIDER" ]; then
 		PATCHWISE_ARGS="$PATCHWISE_ARGS --provider=$OPENAI_API_PROVIDER"
 	fi
