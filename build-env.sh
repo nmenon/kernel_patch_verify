@@ -51,7 +51,7 @@ download_build_install_python_deps()
 	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt
 	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 	# Install patchwise and it's dependencies
-	python -m pip install patchwise
+	python -m pip install git+https://github.com/nmenon/PatchWise.git@kernel_patch_verify_patchwise
 	# HACK - Just dont stick around with 20.0.0 clang.. use the bleeding edge..
 	#find /usr/local/venv/lib/python3*/site-packages/patchwise -iname *.py|xargs sed -ie "s/20.0.0/23.0.0/g"
 	rm -rf "/tmp/.cache/"  /tmp/get-pip.py
