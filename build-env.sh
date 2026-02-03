@@ -15,6 +15,8 @@ export SPARSE_TAG=master
 export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2025.12
+# https://github.com/masoncl/review-prompts
+export REVIEW_PROMPTS=v0.1
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
@@ -129,11 +131,31 @@ download_and_install_armgcc_32()
 	rm -f /tmp/"$FILE"
 }
 
+# Clone review-prompts into /usr/local/share so it is available later.
+# Actual per-user installation (placing SKILL.md into ~/.claude/...) is done
+# later in the Dockerfile after Claude has been installed.
+download_and_install_claude()
+{
+	# Install Claude Code (native installer). See: https://code.claude.com/docs/en/setup
+	curl -fsSL https://claude.ai/install.sh | bash -s stable
+
+	if [ ! -d /usr/local/share/review-prompts ]; then
+		echo "Cloning review-prompts to /usr/local/share/review-prompts"
+		git clone --depth=1 https://github.com/masoncl/review-prompts.git /usr/local/share/review-prompts || true
+	else
+		echo "review-prompts already present at /usr/local/share/review-prompts"
+	fi
+	mkdir -p /config
+	HOME=/config /usr/local/share/review-prompts/kernel/scripts/claude-setup.sh
+}
+
 download_build_install_git
 download_build_install_python_deps
 download_build_install_dtc
 download_build_install_smatch
 download_build_install_sparse
+download_and_install_claude
+
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64
 	download_and_install_armgcc_32

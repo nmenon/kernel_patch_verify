@@ -19,6 +19,7 @@ RUN apt-get update \
 		dumb-init \
 		flex \
 		gcc \
+		curl \
 		gettext \
 		gnupg2 \
 		gosu \
@@ -31,6 +32,8 @@ RUN apt-get update \
 		libpython3.13-dev \
 		libsqlite3-dev \
 		libssl-dev \
+		libstdc++6 \
+		libgcc-s1 \
 		libyaml-dev \
 		libz-dev \
 		menhir \
@@ -45,6 +48,7 @@ RUN apt-get update \
 		python3-pip \
 		python3-venv \
 		python3-ruamel.yaml \
+		ripgrep \
 		sqlite3 \
 		swig \
 		wget \
@@ -96,6 +100,7 @@ COPY other-configs/ /
 RUN mkdir -p /usr/share/codespell \
 	&& ln -s /usr/lib/python3/dist-packages/codespell_lib/data/dictionary.txt /usr/share/codespell/dictionary.txt
 
+# Install developer user and folders
 RUN echo "**** create developer user and make our folders ****" \
 	&& useradd -u 1000 -U -d /config -s /bin/false developer \
 	&& usermod -G users developer \
