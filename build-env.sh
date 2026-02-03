@@ -17,6 +17,8 @@ export SMATCH_TAG=master
 export DTSCHEMA_REV=v2025.12
 # https://github.com/masoncl/review-prompts
 export REVIEW_PROMPTS=v0.1
+# https://github.com/facebookexperimental/semcode
+export SEMCODE_TAG=master
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
@@ -149,12 +151,26 @@ download_and_install_claude()
 	HOME=/config /usr/local/share/review-prompts/kernel/scripts/claude-setup.sh
 }
 
+# Install Rust and semcode
+download_and_install_rust_semcode()
+{
+	local FILE URL
+	FILE='semcode'
+	URL="https://github.com/facebookexperimental/semcode"
+
+	clone_and_cd "$SEMCODE_TAG" "$URL" "$FILE"
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	cargo build --release --target-dir=/tmp/$FILE/release
+	cp -rvf /tmp/$FILE/release/* /usr/local/bin/
+}
+
 download_build_install_git
 download_build_install_python_deps
 download_build_install_dtc
 download_build_install_smatch
 download_build_install_sparse
 download_and_install_claude
+download_and_install_rust_semcode
 
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64

@@ -48,6 +48,8 @@ RUN apt-get update \
 		python3-pip \
 		python3-venv \
 		python3-ruamel.yaml \
+		protobuf-compiler \
+		libprotobuf-dev \
 		ripgrep \
 		sqlite3 \
 		swig \
@@ -82,6 +84,7 @@ RUN apt-get update \
 		llvm \
 		clang \
 		clangd \
+		libclang-dev \
 		lld \
 	&& . /usr/local/venv/bin/activate \
 	&& patchwise --install \
