@@ -123,7 +123,7 @@ RUN echo "**** create developer user and make our folders ****" \
 	&& usermod -G users developer \
 	&& mkdir /workdir && chown developer:developer /workdir \
 	&& mkdir /ccache && chown developer:developer /ccache \
-	&& mkdir /config && chown developer:developer /config
+	&& mkdir -p /config && chown developer:developer /config
 
 ENTRYPOINT ["/init"]
 
