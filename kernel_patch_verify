@@ -438,6 +438,9 @@ series_ai_review() {
 
 		# Clean up the worktree created by review_one.sh
 		local worktree_dir="$KDIR.$end_sha"
+		if [ ! -d "$worktree_dir" ]; then
+			worktree_dir="/tmp/linux.$end_sha"
+		fi
 		if [ -d "$worktree_dir" ]; then
 			echo "Cleaning up worktree: $worktree_dir" 1>&2
 			( cd "$KDIR" && git worktree remove --force "$worktree_dir" 2>&1 ) 1>&2

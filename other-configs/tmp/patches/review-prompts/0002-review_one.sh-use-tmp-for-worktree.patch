@@ -1,0 +1,28 @@
+From b927ad6717974eaa88cc54e4bfe85bc1938f93ec Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Mon, 23 Feb 2026 11:31:37 -0600
+Subject: [PATCH 2/2] review_one.sh: use /tmp for worktree
+
+there is no guarentee that linux/.. is writeable
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ kernel/scripts/review_one.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/scripts/review_one.sh b/kernel/scripts/review_one.sh
+index 371c4744b285..e2a2741deb10 100755
+--- a/kernel/scripts/review_one.sh
++++ b/kernel/scripts/review_one.sh
+@@ -120,7 +120,7 @@ fi
+ export WORKING_DIR
+ export CLAUDE_MODEL
+ 
+-DIR="$BASE_LINUX.$SHA"
++DIR="/tmp/linux.$SHA"
+ 
+ export TERM=xterm
+ export FORCE_COLOR=0
+-- 
+2.47.0
+
