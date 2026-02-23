@@ -19,6 +19,8 @@ export DTSCHEMA_REV=v2025.12
 export REVIEW_PROMPTS=main
 # https://github.com/facebookexperimental/semcode
 export SEMCODE_TAG=main
+# Claude version to use
+export CLAUDE_VERSION=2.1.20
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
@@ -139,7 +141,7 @@ download_and_install_armgcc_32()
 download_and_install_claude()
 {
 	# Install Claude Code (native installer). See: https://code.claude.com/docs/en/setup
-	curl -fsSL https://claude.ai/install.sh | HOME=/config bash -s stable
+	curl -fsSL https://claude.ai/install.sh | HOME=/config bash -s $CLAUDE_VERSION
 
 	if [ ! -d /usr/local/share/review-prompts ]; then
 		echo "Cloning review-prompts to /usr/local/share/review-prompts"
