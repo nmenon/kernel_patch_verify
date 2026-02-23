@@ -16,9 +16,9 @@ export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
 export DTSCHEMA_REV=v2025.12
 # https://github.com/masoncl/review-prompts
-export REVIEW_PROMPTS=v0.1
+export REVIEW_PROMPTS=main
 # https://github.com/facebookexperimental/semcode
-export SEMCODE_TAG=master
+export SEMCODE_TAG=main
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
 # Get latest pip and packages in the "virtual env"
