@@ -144,6 +144,15 @@ download_and_install_claude()
 	if [ ! -d /usr/local/share/review-prompts ]; then
 		echo "Cloning review-prompts to /usr/local/share/review-prompts"
 		git clone --depth=1 https://github.com/masoncl/review-prompts.git /usr/local/share/review-prompts || true
+		if [ -d /tmp/patches/review-prompts ]; then
+			echo "Applying patches from /tmp/patches/review-prompts"
+			for patch in /tmp/patches/review-prompts/*.patch; do
+				[ -f "$patch" ] || continue
+				echo "Applying $patch"
+				git -C /usr/local/share/review-prompts apply "$patch"
+			done
+		fi
+
 	else
 		echo "review-prompts already present at /usr/local/share/review-prompts"
 	fi
