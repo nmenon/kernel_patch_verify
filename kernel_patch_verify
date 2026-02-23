@@ -52,6 +52,14 @@ DEF_V8_BUILDTARGETS="Image dtbs"
 # Default parameters
 APPS_NEEDED="perl make dtc sparse patch git realpath basename codespell"
 
+# Claude and review_one.sh availability (checked later)
+CLAUDE_AVAILABLE=0
+KREVIEW_AVAILABLE=0
+REVIEW_ONE_SH=""
+AI_REVIEW=0
+# Semcode availability (checked later)
+SEMCODE_AVAILABLE=0
+
 # Use all max num CPUs
 KM_CPUS=$(grep -c '^processor' /proc/cpuinfo)
 LOG_FILE="./report-kernel-patch-verify.txt"
@@ -393,8 +401,53 @@ build_all_clean() {
 	(kmake clean 2>/dev/null )>/dev/null
 	kmake_single $KP_TARGETS "$MODULES" >/dev/null
 }
+
 build_all() {
 	(kmake $KP_TARGETS "$MODULES" 2>/dev/null) >/dev/null
+}
+
+
+# AI review for complete series (called after all patches are applied)
+series_ai_review() {
+	if [ $AI_REVIEW -eq 1 ] && [ $KREVIEW_AVAILABLE -eq 1 ]; then
+		echo "Running AI review on complete series ($PATCHCOUNT patches)..."
+
+		# Calculate the git range for the series
+		local start_sha=$(git rev-parse HEAD~$PATCHCOUNT)
+		local end_sha=$(git rev-parse HEAD)
+		local range="${start_sha:0:12}..${end_sha:0:12}"
+
+		echo "Review range: $range" 1>&2
+
+		# Index with semcode if available (recommended for better reviews)
+		if [ $SEMCODE_AVAILABLE -eq 1 ]; then
+			if [ ! -d "$KDIR/.semcode.db" ]; then
+				echo "Indexing with semcode for range $range..." 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" 2>&1 ) 1>&2
+			else
+				echo "semcode index found, updating for range $range..." 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" 2>&1 ) 1>&2
+			fi
+		else
+			echo "Warning: semcode not available, review quality may be reduced" 1>&2
+		fi
+
+		# Run review_one.sh with the range for complete series review
+		echo "Starting Claude review of complete series..." 1>&2
+		( "$REVIEW_ONE_SH" --linux "$KDIR" --range "$range" "$end_sha" || echo "AI review failed for series" ) | tee $LOG_DIR/ai-review.log
+
+		# Clean up the worktree created by review_one.sh
+		local worktree_dir="$KDIR.$end_sha"
+		if [ -d "$worktree_dir" ]; then
+			echo "Cleaning up worktree: $worktree_dir" 1>&2
+			( cd "$KDIR" && git worktree remove --force "$worktree_dir" 2>&1 ) 1>&2
+		else
+			# Directory may be missing but worktree still registered, prune it
+			( cd "$KDIR" && git worktree prune 2>&1 ) 1>&2
+		fi
+
+		echo "AI review of series complete" 1>&2
+	fi
 }
 
 # executed in sequence
@@ -475,6 +528,8 @@ test_patch() {
 	if [ -n "$COMPLETE_TESTS" ]; then
 		TESTS_B_SET="$TESTS_B_SET btest_cocci btest_smatch"
 	fi
+	# Note: AI review is now done as a complete series review after all patches are applied
+	# See series_ai_review() function called after the patch loop
 	# Run the following in parallel
 	TESTS_C_SET="ftest_check_kdoc"
 	if [ $UBOOT_TESTING -eq 0 ]; then
@@ -689,6 +744,12 @@ report_tests() {
 			fi
 		done
 	fi
+
+	if [ -f "$LOG_DIR/ai-review.log" ]; then
+		log_marker "AI Review:"
+		cat "$LOG_DIR/ai-review.log" >> "$LOG_FILE"
+	fi
+
 	if [ -f "$LOG_DIR/patch-wise.log" ]; then
 		log_marker "Patchwise Report:"
 		cat "$LOG_DIR/patch-wise.log" >> "$LOG_FILE"
@@ -783,6 +844,29 @@ check_missing_application() {
 			APPS_MISSING="$APPS_MISSING $i"
 		fi
 	done
+
+	# Check for optional tools (Claude, review_one.sh, semcode)
+
+	# Check if claude command is available
+	if which claude > /dev/null 2>&1; then
+		CLAUDE_AVAILABLE=1
+
+		# Check if review_one.sh is available
+		# Use REVIEW_PROMPTS_DIR if set, otherwise fall back to default location
+		local REVIEW_PROMPTS_BASE="${REVIEW_PROMPTS_DIR:-/usr/local/share/review-prompts}"
+		local REVIEW_ONE_PATH="$REVIEW_PROMPTS_BASE/kernel/scripts/review_one.sh"
+
+		if [ -x "$REVIEW_ONE_PATH" ]; then
+			REVIEW_ONE_SH="$REVIEW_ONE_PATH"
+			KREVIEW_AVAILABLE=1
+		fi
+	fi
+
+	# Check if semcode is available
+	if which semcode > /dev/null 2>&1; then
+		SEMCODE_AVAILABLE=1
+	fi
+
 	if [ -n "$APPS_MISSING" ]; then
 		return 2
 	fi
@@ -806,8 +890,10 @@ recommend_missing_application() {
 		echo "Please install the missing applications and try again." >&2
 		return 2
 	fi
+
 	return 0
 }
+
 
 APP_NAME=$0
 ###################
@@ -818,7 +904,7 @@ usage() {
 
 	printf '%s\n' \
 		'' \
-		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-A] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
 		''
 
 	printf '\t%s\n' \
@@ -831,6 +917,7 @@ usage() {
 		"-l logfile: report file (defaults to $LOG_FILE)" \
 		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
 		"-C: run Complete tests(WARNING: could take significant time!)" \
+		"-A: run AI review on complete series with Claude review_one.sh using --range (requires Claude and review-prompts)" \
 		"-P: run patchwise tests(WARNING: could take significant time!)" \
 		"-c defconfig: name (default uses current .config + olddefconfig)" \
 		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
@@ -862,6 +949,10 @@ usage() {
 		"$APP_NAME -b base_branch -t test_branch" \
 		"Example usage 6: verify from branch Complete tests, all patches from 'base_branch' until 'test_branch'" \
 		"$APP_NAME -b base_branch -t test_branch -C" \
+		"Example usage 6a: verify last patch with AI series review (Claude review_one.sh with --range)" \
+		"$APP_NAME -A -1" \
+		"Example usage 6b: verify complete patch series with AI review from base_branch to test_branch" \
+		"$APP_NAME -A -b base_branch -t test_branch" \
 		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
 		"$APP_NAME -B bzImage -1" \
 		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
@@ -882,7 +973,7 @@ ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
 PATCHWISE=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789CdDUVZLP" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789ACdDUVZLP" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -969,6 +1060,19 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789CdDUVZLP" opt; do
 		MODULES=modules
 		if [ "$UBOOT_TESTING" -eq 1 ]; then
 			usage "Cannot run complete tests yet on u-boot"
+			exit 1
+		fi
+	;;
+	A)
+		AI_REVIEW=1
+		# Check early if Claude is available when explicitly requested
+		check_missing_application
+		if [ $KREVIEW_AVAILABLE -eq 0 ]; then
+			if [ $CLAUDE_AVAILABLE -eq 0 ]; then
+				usage "Cannot run AI review without Claude installed. See https://code.claude.com/docs/en/setup"
+			else
+				usage "Cannot run AI review without review_one.sh. Set REVIEW_PROMPTS_DIR or install review-prompts to /usr/local/share/review-prompts. See https://github.com/masoncl/review-prompts"
+			fi
 			exit 1
 		fi
 	;;
@@ -1216,6 +1320,11 @@ do
 done
 
 tests_end
+
+# Run AI review on complete series if requested
+if [ $AI_REVIEW -eq 1 ]; then
+	series_ai_review
+fi
 
 if [ "$PATCHWISE" -eq 1 ]; then
 	echo "Starting Patchwise for $PATCHCOUNT patches.. Please be patient"
