@@ -159,7 +159,7 @@ download_and_install_rust_semcode()
 	URL="https://github.com/facebookexperimental/semcode"
 
 	clone_and_cd "$SEMCODE_TAG" "$URL" "$FILE"
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 	cargo build --release --target-dir=/tmp/$FILE/release
 	cp -rvf /tmp/$FILE/release/* /usr/local/bin/
 }
