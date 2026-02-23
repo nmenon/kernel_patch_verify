@@ -139,7 +139,7 @@ download_and_install_armgcc_32()
 download_and_install_claude()
 {
 	# Install Claude Code (native installer). See: https://code.claude.com/docs/en/setup
-	curl -fsSL https://claude.ai/install.sh | bash -s stable
+	curl -fsSL https://claude.ai/install.sh | HOME=/config bash -s stable
 
 	if [ ! -d /usr/local/share/review-prompts ]; then
 		echo "Cloning review-prompts to /usr/local/share/review-prompts"
