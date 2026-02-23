@@ -71,14 +71,6 @@ RUN apt-get update \
 RUN python3 -m venv /usr/local/venv
 RUN . /usr/local/venv/bin/activate
 
-COPY other-configs/tmp /tmp
-
-RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
-	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
-
-# Publish the source repository
-LABEL org.opencontainers.image.source=https://github.com/nmenon/kernel_patch_verify
-
 # Add our llvm repo configs
 COPY llvm-config /
 
@@ -89,6 +81,25 @@ RUN apt-get update \
 		clangd \
 		libclang-dev \
 		lld \
+		llvm-dev \
+	&& apt-get autoremove -y\
+	&& apt-get clean -y\
+	&& rm -rf \
+		/tmp/* \
+		/var/lib/apt/lists/* \
+		/var/tmp/* \
+		/var/log/*
+
+COPY other-configs/tmp /tmp
+
+RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
+	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
+
+# Publish the source repository
+LABEL org.opencontainers.image.source=https://github.com/nmenon/kernel_patch_verify
+
+# Install patchwise dependencies
+RUN apt-get update \
 	&& . /usr/local/venv/bin/activate \
 	&& patchwise --install \
 	&& echo "**** cleanup ****" \
