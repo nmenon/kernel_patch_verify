@@ -82,6 +82,11 @@ extra_paths=(
 	/opt/cross-gcc-linux-9/bin
 )
 
+# Mount Claude settings if they exist
+if [ -d "$HOME/.claude/settings.json" ]; then
+	DOCKER_ARGS+=(-v "$HOME/.claude/settings.json":/config/.claude/settings.json)
+fi
+
 # Pass OpenAPI key if defined to the container environment for PatchWise
 if [ -n "${OPENAI_API_KEY}" ]; then
 	DOCKER_ARGS+=(-e OPENAI_API_KEY="${OPENAI_API_KEY}")
