@@ -71,7 +71,7 @@ RUN apt-get update \
 RUN python3 -m venv /usr/local/venv
 RUN . /usr/local/venv/bin/activate
 
-COPY other-configs/ /
+COPY other-configs/tmp /tmp
 
 RUN --mount=type=bind,source=build-env.sh,target=/tmp/build-env.sh \
 	INSTALL_GCC=$INSTALL_GCC /tmp/build-env.sh
@@ -81,6 +81,7 @@ LABEL org.opencontainers.image.source=https://github.com/nmenon/kernel_patch_ver
 
 # Add our llvm repo configs
 COPY llvm-config /
+
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		llvm \
@@ -98,6 +99,8 @@ RUN apt-get update \
 		/var/lib/apt/lists/* \
 		/var/tmp/* \
 		/var/log/*
+
+COPY other-configs/ /
 
 # HACK for codespell path change in trixie
 RUN mkdir -p /usr/share/codespell \
