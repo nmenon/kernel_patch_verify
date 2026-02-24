@@ -121,9 +121,9 @@ RUN mkdir -p /usr/share/codespell \
 RUN echo "**** create developer user and make our folders ****" \
 	&& useradd -u 1000 -U -d /config -s /bin/false developer \
 	&& usermod -G users developer \
-	&& mkdir /workdir && chown developer:developer /workdir \
-	&& mkdir /ccache && chown developer:developer /ccache \
-	&& mkdir -p /config && chown developer:developer /config
+	&& mkdir /workdir && chown -R developer:developer /workdir \
+	&& mkdir /ccache && chown -R developer:developer /ccache \
+	&& mkdir -p /config && chown -R developer:developer /config
 
 ENTRYPOINT ["/init"]
 
