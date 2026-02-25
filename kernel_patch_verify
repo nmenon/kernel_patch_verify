@@ -460,9 +460,11 @@ series_ai_review() {
 
 			if [ ! -d "$KDIR/.semcode.db" ]; then
 				echo "Indexing with semcode for range $range..." 1>&2
+				echo -e "\033[1;33mWARNING: Do not interrupt this process - interrupting semcode indexing can corrupt the database\033[0m" 1>&2
 				( cd "$KDIR" && semcode-index -s . --git "$range" --db-threads 1 $lore_opts 2>&1 ) 1>&2
 			else
 				echo "semcode index found, updating for range $range..." 1>&2
+				echo -e "\033[1;33mWARNING: Do not interrupt this process - interrupting semcode indexing can corrupt the database\033[0m" 1>&2
 				( cd "$KDIR" && semcode-index -s . --git "$range" --db-threads 1 $lore_opts 2>&1 ) 1>&2
 			fi
 		else
