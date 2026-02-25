@@ -435,6 +435,13 @@ series_ai_review() {
 
 		# Index with semcode if available (recommended for better reviews)
 		if [ $SEMCODE_AVAILABLE -eq 1 ]; then
+			# Setup semcode database location
+			# If SEMCODE_DB is set and points to an existing directory, use it via softlink
+			if [ -n "$SEMCODE_DB" ] && [ -d "$SEMCODE_DB" ] && [ ! -e "$KDIR/.semcode.db" ]; then
+				echo "Creating softlink to SEMCODE_DB: $SEMCODE_DB" 1>&2
+				ln -s "$SEMCODE_DB" "$KDIR/.semcode.db"
+			fi
+
 			# Prepare lore indexing options
 			local lore_opts=""
 			local lore_lists_to_use="${LORE_LISTS:-$DEF_LORE_LISTS}"
