@@ -59,6 +59,9 @@ REVIEW_ONE_SH=""
 AI_REVIEW=0
 # Semcode availability (checked later)
 SEMCODE_AVAILABLE=0
+# Default lore mailing lists to index
+DEF_LORE_LISTS="linux-arm-kernel,linux-devicetree,linux-clk,linux-pm,netdev,drm-misc"
+LORE_LISTS=""
 
 # Use all max num CPUs
 KM_CPUS=$(grep -c '^processor' /proc/cpuinfo)
@@ -406,6 +409,17 @@ build_all() {
 	(kmake $KP_TARGETS "$MODULES" 2>/dev/null) >/dev/null
 }
 
+# Check if lore.kernel.org is accessible
+check_lore_accessible() {
+	local temp_test_dir=$(mktemp -d)
+	# Try to clone a minimal amount from lore to test connectivity
+	if git clone --depth=1 --mirror "https://lore.kernel.org/linux-arm-kernel/0" "$temp_test_dir/test" > /dev/null 2>&1; then
+		rm -rf "$temp_test_dir"
+		return 0
+	fi
+	rm -rf "$temp_test_dir"
+	return 1
+}
 
 # AI review for complete series (called after all patches are applied)
 series_ai_review() {
@@ -421,12 +435,25 @@ series_ai_review() {
 
 		# Index with semcode if available (recommended for better reviews)
 		if [ $SEMCODE_AVAILABLE -eq 1 ]; then
+			# Prepare lore indexing options
+			local lore_opts=""
+			local lore_lists_to_use="${LORE_LISTS:-$DEF_LORE_LISTS}"
+			if [ -n "$lore_lists_to_use" ]; then
+				echo "Checking lore.kernel.org accessibility..." 1>&2
+				if check_lore_accessible; then
+					lore_opts="--lore $lore_lists_to_use"
+					echo "Will index lore mailing lists: $lore_lists_to_use" 1>&2
+				else
+					echo "Warning: lore.kernel.org not accessible, skipping lore indexing" 1>&2
+				fi
+			fi
+
 			if [ ! -d "$KDIR/.semcode.db" ]; then
 				echo "Indexing with semcode for range $range..." 1>&2
-				( cd "$KDIR" && semcode-index -s . --git "$range" 2>&1 ) 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" $lore_opts 2>&1 ) 1>&2
 			else
 				echo "semcode index found, updating for range $range..." 1>&2
-				( cd "$KDIR" && semcode-index -s . --git "$range" 2>&1 ) 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" $lore_opts 2>&1 ) 1>&2
 			fi
 		else
 			echo "Warning: semcode not available, review quality may be reduced" 1>&2
@@ -922,7 +949,7 @@ usage() {
 
 	printf '%s\n' \
 		'' \
-		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-A] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-A] [-M lore_lists] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
 		''
 
 	printf '\t%s\n' \
@@ -936,6 +963,7 @@ usage() {
 		"-L Use llvm to build 'LLVM=1 CC='$ccache clang''" \
 		"-C: run Complete tests(WARNING: could take significant time!)" \
 		"-A: run AI review on complete series with Claude review_one.sh using --range (requires Claude and review-prompts)" \
+		"-M lore_lists: comma-separated list of lore.kernel.org mailing lists to index with semcode (default: $DEF_LORE_LISTS)" \
 		"-P: run patchwise tests(WARNING: could take significant time!)" \
 		"-c defconfig: name (default uses current .config + olddefconfig)" \
 		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
@@ -971,6 +999,8 @@ usage() {
 		"$APP_NAME -A -1" \
 		"Example usage 6b: verify complete patch series with AI review from base_branch to test_branch" \
 		"$APP_NAME -A -b base_branch -t test_branch" \
+		"Example usage 6c: verify with AI review and custom lore mailing lists" \
+		"$APP_NAME -A -M linux-arm-kernel,linux-kernel -1" \
 		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
 		"$APP_NAME -B bzImage -1" \
 		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
@@ -991,7 +1021,7 @@ ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
 PATCHWISE=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789ACdDUVZLP" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLP" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -1093,6 +1123,9 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:O:123456789ACdDUVZLP" opt; do
 			fi
 			exit 1
 		fi
+	;;
+	M)
+		LORE_LISTS=$OPTARG
 	;;
 	P)
 		PATCHWISE=1
