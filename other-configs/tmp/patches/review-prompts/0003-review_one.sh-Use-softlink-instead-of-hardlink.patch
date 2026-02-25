@@ -1,0 +1,28 @@
+From 0a891476dff2333de5b1ece3112e62e383827a4b Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Tue, 24 Feb 2026 20:24:56 -0600
+Subject: [PATCH 3/3] review_one.sh: Use softlink instead of hardlink.
+
+Use softlink to point to the db instead of hardlinks.
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ kernel/scripts/review_one.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/scripts/review_one.sh b/kernel/scripts/review_one.sh
+index e2a2741deb10..f8038c87739f 100755
+--- a/kernel/scripts/review_one.sh
++++ b/kernel/scripts/review_one.sh
+@@ -140,7 +140,7 @@ if [ ! -d "$DIR" ]; then
+         sleep 1
+     done
+     if [ -d "$BASE_LINUX/.semcode.db" ]; then
+-        cp -al "$BASE_LINUX/.semcode.db" "$DIR/.semcode.db"
++        cp -as "$BASE_LINUX/.semcode.db" "$DIR/.semcode.db"
+ 	HAVE_MCP=1
+     else
+         echo "Warning: $BASE_LINUX/.semcode.db not found, skipping MCP configuration" >&2
+-- 
+2.47.0
+
