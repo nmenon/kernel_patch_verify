@@ -450,10 +450,10 @@ series_ai_review() {
 
 			if [ ! -d "$KDIR/.semcode.db" ]; then
 				echo "Indexing with semcode for range $range..." 1>&2
-				( cd "$KDIR" && semcode-index -s . --git "$range" $lore_opts 2>&1 ) 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" --db-threads 1 $lore_opts 2>&1 ) 1>&2
 			else
 				echo "semcode index found, updating for range $range..." 1>&2
-				( cd "$KDIR" && semcode-index -s . --git "$range" $lore_opts 2>&1 ) 1>&2
+				( cd "$KDIR" && semcode-index -s . --git "$range" --db-threads 1 $lore_opts 2>&1 ) 1>&2
 			fi
 		else
 			echo "Warning: semcode not available, review quality may be reduced" 1>&2
