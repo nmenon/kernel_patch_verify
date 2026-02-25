@@ -1,0 +1,29 @@
+name: Cleanup Old Packages
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Monthly on the 1st at midnight UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  cleanup-ghcr:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - name: Delete untagged package versions from GHCR
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: arm-kernel-dev
+          package-type: container
+          delete-only-untagged-versions: true
+
+      - name: Delete GHCR package versions older than 6 months
+        uses: snok/container-retention-policy@v2
+        with:
+          account-type: personal
+          image-names: arm-kernel-dev
+          cut-off: 6 months ago UTC
+          keep-at-least: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
