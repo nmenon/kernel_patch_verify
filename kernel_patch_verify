@@ -487,13 +487,61 @@ series_ai_review() {
 			local subject=$(git -C "$KDIR" log -1 --format="%s" "$commit_sha")
 			echo "[$patch_num/$PATCHCOUNT] Reviewing $short_sha: $subject" 1>&2
 
-			( "$REVIEW_ONE_SH" --linux "$KDIR" --range "$range" "$commit_sha" || echo "AI review failed for $short_sha" ) | tee -a $LOG_DIR/ai-review.log
+			( "$REVIEW_ONE_SH" --linux "$KDIR" --range "$range" "$commit_sha" || echo "AI review failed for $short_sha" 1>&2 )
 
-			# Clean up the worktree created by review_one.sh
+			# Extract review files before cleanup
 			local worktree_dir="$KDIR.$commit_sha"
 			if [ ! -d "$worktree_dir" ]; then
 				worktree_dir="/tmp/linux.$commit_sha"
 			fi
+
+			# Add separator between commits in the log
+			if [ $patch_num -gt 1 ]; then
+				echo "" >> "$LOG_DIR/ai-review.log"
+				echo "========================================" >> "$LOG_DIR/ai-review.log"
+				echo "" >> "$LOG_DIR/ai-review.log"
+			fi
+
+			if [ -f "$worktree_dir/review-inline.txt" ]; then
+				# Extract metadata for summary
+				local issues_found="unknown"
+				local guide_flagged="unknown"
+				local severity="unknown"
+				local severity_explain=""
+				local ai_authorship="unknown"
+
+				if [ -f "$worktree_dir/review-metadata.json" ]; then
+					issues_found=$(grep -o '"issues-found": *[0-9]*' "$worktree_dir/review-metadata.json" | grep -o '[0-9]*')
+					guide_flagged=$(grep -o '"guide-flagged-issues": *[0-9]*' "$worktree_dir/review-metadata.json" | grep -o '[0-9]*')
+					severity=$(grep -o '"issue-severity-score": *"[^"]*"' "$worktree_dir/review-metadata.json" | cut -d'"' -f4)
+					severity_explain=$(grep -o '"issue-severity-explanation": *"[^"]*"' "$worktree_dir/review-metadata.json" | cut -d'"' -f4)
+					ai_authorship=$(grep -o '"AI-authorship-score": *"[^"]*"' "$worktree_dir/review-metadata.json" | cut -d'"' -f4)
+				fi
+
+				{
+					echo "========================================"
+					echo "Commit: $short_sha - $subject"
+					echo "Issues Found: $issues_found (guide-flagged: $guide_flagged)"
+					echo "Severity: $severity - $severity_explain"
+					echo "AI-authorship: $ai_authorship"
+					echo "========================================"
+					echo ""
+
+					echo "--- Review Comments ---"
+					cat "$worktree_dir/review-inline.txt"
+					echo ""
+
+					if [ -f "$worktree_dir/review.md" ]; then
+						echo "--- Analysis Details ---"
+						cat "$worktree_dir/review.md"
+						echo ""
+					fi
+				} >> "$LOG_DIR/ai-review.log"
+			else
+				echo "$short_sha: No issues found" >> "$LOG_DIR/ai-review.log"
+			fi
+
+			# Clean up the worktree created by review_one.sh
 			if [ -d "$worktree_dir" ]; then
 				echo "Cleaning up worktree: $worktree_dir" 1>&2
 				( cd "$KDIR" && git worktree remove --force "$worktree_dir" 2>&1 ) 1>&2
