@@ -250,6 +250,9 @@ kpv -V -L -A -b base_branch -t test_branch
 The AI review works best with semcode indexing, which provides better context
 about the codebase. The tool will automatically use semcode if available.
 
+To install semcode: https://github.com/facebookexperimental/semcode
+
+
 You can optimize semcode database reuse by setting the `SEMCODE_DB` environment
 variable in your `~/.bashrc`:
 
