@@ -60,7 +60,7 @@ AI_REVIEW=0
 # Semcode availability (checked later)
 SEMCODE_AVAILABLE=0
 # Default lore mailing lists to index
-DEF_LORE_LISTS="linux-arm-kernel,linux-devicetree,linux-clk,linux-pm,netdev,drm-misc"
+DEF_LORE_LISTS="linux-arm-kernel,linux-devicetree,linux-clk,linux-pm,netdev,dri-devel"
 LORE_LISTS=""
 
 # Use all max num CPUs
