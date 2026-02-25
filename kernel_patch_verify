@@ -432,22 +432,37 @@ series_ai_review() {
 			echo "Warning: semcode not available, review quality may be reduced" 1>&2
 		fi
 
-		# Run review_one.sh with the range for complete series review
-		echo "Starting Claude review of complete series..." 1>&2
-		( "$REVIEW_ONE_SH" --linux "$KDIR" --range "$range" "$end_sha" || echo "AI review failed for series" ) | tee $LOG_DIR/ai-review.log
+		# Get list of all commits in the series
+		local commits=()
+		while IFS= read -r sha; do
+			commits+=("$sha")
+		done < <(git -C "$KDIR" rev-list --reverse "${start_sha}..${end_sha}")
 
-		# Clean up the worktree created by review_one.sh
-		local worktree_dir="$KDIR.$end_sha"
-		if [ ! -d "$worktree_dir" ]; then
-			worktree_dir="/tmp/linux.$end_sha"
-		fi
-		if [ -d "$worktree_dir" ]; then
-			echo "Cleaning up worktree: $worktree_dir" 1>&2
-			( cd "$KDIR" && git worktree remove --force "$worktree_dir" 2>&1 ) 1>&2
-		else
-			# Directory may be missing but worktree still registered, prune it
-			( cd "$KDIR" && git worktree prune 2>&1 ) 1>&2
-		fi
+		# Run review_one.sh for each commit in the series
+		echo "Starting Claude review of $PATCHCOUNT patches in series..." 1>&2
+		local patch_num=1
+		for commit_sha in "${commits[@]}"; do
+			local short_sha="${commit_sha:0:12}"
+			local subject=$(git -C "$KDIR" log -1 --format="%s" "$commit_sha")
+			echo "[$patch_num/$PATCHCOUNT] Reviewing $short_sha: $subject" 1>&2
+
+			( "$REVIEW_ONE_SH" --linux "$KDIR" --range "$range" "$commit_sha" || echo "AI review failed for $short_sha" ) | tee -a $LOG_DIR/ai-review.log
+
+			# Clean up the worktree created by review_one.sh
+			local worktree_dir="$KDIR.$commit_sha"
+			if [ ! -d "$worktree_dir" ]; then
+				worktree_dir="/tmp/linux.$commit_sha"
+			fi
+			if [ -d "$worktree_dir" ]; then
+				echo "Cleaning up worktree: $worktree_dir" 1>&2
+				( cd "$KDIR" && git worktree remove --force "$worktree_dir" 2>&1 ) 1>&2
+			else
+				# Directory may be missing but worktree still registered, prune it
+				( cd "$KDIR" && git worktree prune 2>&1 ) 1>&2
+			fi
+
+			patch_num=$((patch_num + 1))
+		done
 
 		echo "AI review of series complete" 1>&2
 	fi
