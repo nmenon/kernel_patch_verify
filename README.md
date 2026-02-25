@@ -222,6 +222,70 @@ Example usages:
     ./kernel_patch_verify -d -1
     ```
 
+Notes on AI-assisted review
+============================
+
+AI Review with Claude
+---------------------
+
+The tool supports AI-powered patch review using Claude and the `review-prompts`
+framework. This provides intelligent, context-aware reviews of complete patch series.
+
+To use this feature:
+1. Install Claude Code: https://code.claude.com/docs/en/setup
+2. Install review-prompts: https://github.com/masoncl/review-prompts
+3. Use the `-A` option to enable AI review
+
+Example:
+```bash
+# Review the last patch with AI
+kpv -V -L -A -1
+
+# Review a complete series with AI
+kpv -V -L -A -b base_branch -t test_branch
+```
+
+### Semcode Integration
+
+The AI review works best with semcode indexing, which provides better context
+about the codebase. The tool will automatically use semcode if available.
+
+You can optimize semcode database reuse by setting the `SEMCODE_DB` environment
+variable in your `~/.bashrc`:
+
+```bash
+export SEMCODE_DB=/path/to/shared/semcode-db
+```
+
+When set, the tool will create a softlink from `.semcode.db` in your kernel
+directory to the shared database, allowing multiple kernel trees to share the
+same semcode index.
+
+### Lore Mailing List Integration
+
+When using AI review with semcode, you can specify which kernel mailing lists
+to index for additional context using the `-M` option:
+
+```bash
+# Custom lore mailing lists
+kpv -A -M linux-arm-kernel,lkml/0 -1
+
+# Skip lore indexing (useful for repeated runs after initial indexing)
+kpv -A -M "" -1
+```
+
+Default lists indexed: `linux-arm-kernel,linux-devicetree,linux-clk,linux-pm,netdev,dri-devel`
+
+**Optimization tip:** Lore mailing list indexing only needs to run once to populate
+the semcode database. For subsequent runs on the same codebase, you can use `-M ""`
+to skip lore indexing and speed up the review process, as the mailing list context
+is already available in the database.
+
+**Warning:** Do not use `-M ""` if there have been recent relevant discussions on
+the mailing lists related to your changes. Re-indexing ensures the AI has access
+to the latest conversations, bug reports, and feedback that might be relevant to
+your patch review.
+
 Notes on patchwise
 ==================
 
