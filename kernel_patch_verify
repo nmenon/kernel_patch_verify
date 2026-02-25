@@ -440,6 +440,8 @@ series_ai_review() {
 			if [ -n "$SEMCODE_DB" ] && [ -d "$SEMCODE_DB" ] && [ ! -e "$KDIR/.semcode.db" ]; then
 				echo "Creating softlink to SEMCODE_DB: $SEMCODE_DB" 1>&2
 				ln -s "$SEMCODE_DB" "$KDIR/.semcode.db"
+			elif [ -z "$SEMCODE_DB" ]; then
+				echo -e "\033[1;33mNOTICE:\033[0m \033[36mSEMCODE_DB not set. Database with lore archives can exceed 10GB.\033[0m \033[1;32mConsider: export SEMCODE_DB=~/semcode.db\033[0m \033[33m- Continuing with local .semcode.db\033[0m" 1>&2
 			fi
 
 			# Prepare lore indexing options
