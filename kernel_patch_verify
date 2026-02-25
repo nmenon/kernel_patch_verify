@@ -1012,7 +1012,7 @@ usage() {
 		"Example usage 6b: verify complete patch series with AI review from base_branch to test_branch" \
 		"$APP_NAME -A -b base_branch -t test_branch" \
 		"Example usage 6c: verify with AI review and custom lore mailing lists" \
-		"$APP_NAME -A -M linux-arm-kernel,linux-kernel -1" \
+		"$APP_NAME -A -M linux-arm-kernel,lkml/0 -1" \
 		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
 		"$APP_NAME -B bzImage -1" \
 		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
