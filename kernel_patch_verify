@@ -61,7 +61,7 @@ AI_REVIEW=0
 SEMCODE_AVAILABLE=0
 # Default lore mailing lists to index
 DEF_LORE_LISTS="linux-arm-kernel,linux-devicetree,linux-clk,linux-pm,netdev,dri-devel"
-LORE_LISTS=""
+LORE_LISTS_SET=0
 
 # Use all max num CPUs
 KM_CPUS=$(grep -c '^processor' /proc/cpuinfo)
@@ -444,7 +444,10 @@ series_ai_review() {
 
 			# Prepare lore indexing options
 			local lore_opts=""
-			local lore_lists_to_use="${LORE_LISTS:-$DEF_LORE_LISTS}"
+			local lore_lists_to_use="$DEF_LORE_LISTS"
+			if [ "$LORE_LISTS_SET" -eq 1 ]; then
+				lore_lists_to_use="$LORE_LISTS"
+			fi
 			if [ -n "$lore_lists_to_use" ]; then
 				echo "Checking lore.kernel.org accessibility..." 1>&2
 				if check_lore_accessible; then
@@ -1133,6 +1136,7 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLP" opt; do
 	;;
 	M)
 		LORE_LISTS=$OPTARG
+		LORE_LISTS_SET=1
 	;;
 	P)
 		PATCHWISE=1
