@@ -496,11 +496,9 @@ series_ai_review() {
 			fi
 
 			# Add separator between commits in the log
-			if [ $patch_num -gt 1 ]; then
-				echo "" >> "$LOG_DIR/ai-review.log"
-				echo "========================================" >> "$LOG_DIR/ai-review.log"
-				echo "" >> "$LOG_DIR/ai-review.log"
-			fi
+			echo "" >> "$LOG_DIR/ai-review.log"
+			echo "========== AI REVIEW $patch_num / $PATCHCOUNT ==============================" >> "$LOG_DIR/ai-review.log"
+			echo "" >> "$LOG_DIR/ai-review.log"
 
 			if [ -f "$worktree_dir/review-inline.txt" ]; then
 				# Extract metadata for summary
