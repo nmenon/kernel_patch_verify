@@ -523,6 +523,14 @@ series_ai_review() {
 					echo "Severity: $severity - $severity_explain"
 					echo "AI-authorship: $ai_authorship"
 					echo "========================================"
+
+				} >> "$LOG_DIR/ai-review.log"
+			else
+				echo "$short_sha: No issues found" >> "$LOG_DIR/ai-review.log"
+			fi
+
+			if [ -f "$worktree_dir/review-inline.txt" -o -n "$AI_LOG_ALWAYS" ]; then
+				{
 					echo ""
 
 					echo "--- Review Comments ---"
@@ -535,8 +543,6 @@ series_ai_review() {
 						echo ""
 					fi
 				} >> "$LOG_DIR/ai-review.log"
-			else
-				echo "$short_sha: No issues found" >> "$LOG_DIR/ai-review.log"
 			fi
 
 			# Clean up the worktree created by review_one.sh

@@ -245,6 +245,11 @@ kpv -V -L -A -1
 kpv -V -L -A -b base_branch -t test_branch
 ```
 
+NOTE: You can set the environment variable `AI_LOG_ALWAYS` to 1 to force the
+AI review logic to be available in the log always - even if the patch is fine
+from AI review perspective. Default is to dump the AI thought process only if
+there are review comments to provide for the patch.
+
 ### Semcode Integration
 
 The AI review works best with semcode indexing, which provides better context
