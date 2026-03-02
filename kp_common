@@ -93,6 +93,10 @@ if [ -n "${SEMCODE_DB}" ] && [ -d "${SEMCODE_DB}" ]; then
 	DOCKER_ARGS+=(-e SEMCODE_DB="${SEMCODE_DB}")
 fi
 
+if [ -n "${AI_LOG_ALWAYS}" ]; then
+	DOCKER_ARGS+=(-e AI_LOG_ALWAYS="${AI_LOG_ALWAYS}")
+fi
+
 # Pass OpenAPI key if defined to the container environment for PatchWise
 if [ -n "${OPENAI_API_KEY}" ]; then
 	DOCKER_ARGS+=(-e OPENAI_API_KEY="${OPENAI_API_KEY}")
