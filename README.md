@@ -310,6 +310,55 @@ This test can execute multiple tests already performed, but it is just additiona
 review tool that is available. Expect to see some significant time spend in this
 check.
 
+Environment Variables Reference
+================================
+
+The following environment variables control the behavior of `kernel_patch_verify` and `kpv`/`kps`.
+
+### Build Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ARCH` | host arch | Target architecture (e.g. `arm`, `arm64`). Set automatically by `-d` or `-V` flags. |
+| `CROSS_COMPILE` | *(none)* | Cross-compiler prefix (e.g. `aarch64-none-linux-gnu-`). Set automatically by `-d` or `-V` flags. |
+| `LLVM` | *(none)* | Set to `1` to use LLVM/clang toolchain. Set automatically by `-L` flag. |
+
+### Docker Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `IMG_NAME` | `ghcr.io/nmenon/arm-kernel-dev` | Docker image to use for `kpv`/`kps`. Override to use a locally built image (e.g. `IMG_NAME=arm-kernel-dev`). |
+
+### AI Review Variables (Claude)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AI_LOG_ALWAYS` | *(not set)* | Set to `1` to always include AI thought process in the log, even when no review comments are generated. Default: only logged when review comments exist. |
+| `CLAUDE_MODEL` | *(Claude default)* | Override the Claude model used for AI review. If unset and `OPENAI_API_MODEL` is set, that value is used instead. |
+| `REVIEW_PROMPTS_DIR` | `/usr/local/share/review-prompts` | Path to the `review-prompts` installation. Set if installed in a non-default location. |
+| `SEMCODE_DB` | *(local `.semcode.db`)* | Path to a shared semcode database directory. Allows multiple kernel trees to share one index. When set, a symlink is created from `.semcode.db` in the kernel directory. |
+
+### PatchWise Variables (OpenAI)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | *(required for `-P`)* | API key for PatchWise. Also forwarded as `ANTHROPIC_API_KEY` inside the Docker container. |
+| `OPENAI_API_MODEL` | *(PatchWise default)* | Model override for PatchWise (e.g. `gpt-4o`). Also used as `CLAUDE_MODEL` fallback if `CLAUDE_MODEL` is not set. |
+| `OPENAI_API_PROVIDER` | *(none)* | LLM gateway provider if your organization uses an API proxy. |
+
+Example `~/.bashrc` configuration:
+
+```bash
+# Shared semcode database (avoids 10GB+ per-tree databases)
+export SEMCODE_DB=~/semcode.db
+
+# Use a specific Claude model for AI review
+export CLAUDE_MODEL=claude-opus-4-5-20251101
+
+# Always include AI reasoning in logs
+export AI_LOG_ALWAYS=1
+```
+
 Some script design stuff:
 =========================
 

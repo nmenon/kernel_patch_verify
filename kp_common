@@ -97,6 +97,13 @@ if [ -n "${AI_LOG_ALWAYS}" ]; then
 	DOCKER_ARGS+=(-e AI_LOG_ALWAYS="${AI_LOG_ALWAYS}")
 fi
 
+if [ -z "${CLAUDE_MODEL}" ] && [ -n "${OPENAI_API_MODEL}" ]; then
+	CLAUDE_MODEL="${OPENAI_API_MODEL}"
+fi
+if [ -n "${CLAUDE_MODEL}" ]; then
+	DOCKER_ARGS+=(-e CLAUDE_MODEL="${CLAUDE_MODEL}")
+fi
+
 # Pass OpenAPI key if defined to the container environment for PatchWise
 if [ -n "${OPENAI_API_KEY}" ]; then
 	DOCKER_ARGS+=(-e OPENAI_API_KEY="${OPENAI_API_KEY}")
