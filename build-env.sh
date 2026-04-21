@@ -159,7 +159,7 @@ download_and_install_claude()
 		echo "review-prompts already present at /usr/local/share/review-prompts"
 	fi
 	mkdir -p /config
-	HOME=/config /usr/local/share/review-prompts/kernel/scripts/claude-setup.sh
+	HOME=/config /usr/local/share/review-prompts/setup.sh claude kernel
 }
 
 # Install Rust and semcode
