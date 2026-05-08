@@ -97,6 +97,10 @@ if [ -n "${AI_LOG_ALWAYS}" ]; then
 	DOCKER_ARGS+=(-e AI_LOG_ALWAYS="${AI_LOG_ALWAYS}")
 fi
 
+if [ -n "${DOCKER_NETWORK_HOST}" ]; then
+	DOCKER_ARGS+=(--network host)
+fi
+
 if [ -z "${CLAUDE_MODEL}" ] && [ -n "${OPENAI_API_MODEL}" ]; then
 	CLAUDE_MODEL="${OPENAI_API_MODEL}"
 fi

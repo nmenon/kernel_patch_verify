@@ -328,6 +328,34 @@ The following environment variables control the behavior of `kernel_patch_verify
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `IMG_NAME` | `ghcr.io/nmenon/arm-kernel-dev` | Docker image to use for `kpv`/`kps`. Override to use a locally built image (e.g. `IMG_NAME=arm-kernel-dev`). |
+| `DOCKER_NETWORK_HOST` | *(not set)* | Set to any non-empty value to pass `--network host` to Docker, giving the container access to the host network stack. |
+
+**When to use `DOCKER_NETWORK_HOST`:**
+
+By default Docker uses a bridged network, which isolates the container from
+services running on `localhost` of the host machine. Set this variable when
+the AI review tools need to reach a locally hosted LLM inference server or
+API gateway — for example:
+
+- A local [Ollama](https://ollama.ai/) instance serving an open-weights model
+  (`http://localhost:11434`)
+- A corporate LLM gateway running on the developer workstation
+- A local LiteLLM or OpenAI-compatible proxy
+  (`http://localhost:8080`)
+
+```bash
+# Use a local Ollama instance for AI review
+export DOCKER_NETWORK_HOST=1
+export OPENAI_API_PROVIDER=http://localhost:11434
+kpv -V -L -A -1
+
+# Or inline for a one-off run
+DOCKER_NETWORK_HOST=1 OPENAI_API_PROVIDER=http://localhost:8080 kpv -V -L -P -1
+```
+
+> **Note:** `--network host` is a Linux-only Docker feature. On macOS and
+> Windows (Docker Desktop) the host network mode behaves differently and may
+> not expose `localhost` services as expected.
 
 ### AI Review Variables (Claude)
 
