@@ -38,6 +38,7 @@ RUN apt-get update \
 		libz-dev \
 		menhir \
 		ncurses-dev \
+		nodejs \
 		ocaml-findlib \
 		ocaml-native-compilers \
 		ocaml-nox \
