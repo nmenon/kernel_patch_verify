@@ -1040,7 +1040,8 @@ usage() {
 		"-U : Do u-boot basic sanity tests" \
 		"-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" \
 		"-m : maximum line length number to be passed on to checkpatch.pl" \
-		"-S smatch_script : Provide a custom smatch_script instead of creating our own"
+		"-S smatch_script : Provide a custom smatch_script instead of creating our own" \
+		"-s : Test current b4 branch, it automatically sets test_branch and base_branch"
 
 	printf '%s\n' \
 		'' \
@@ -1087,7 +1088,7 @@ ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
 PATCHWISE=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLP" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPs" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -1264,6 +1265,10 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLP" opt; do
 	S)
 		SMATCH=$OPTARG
 	;;
+	s)
+		APPS_NEEDED="$APPS_NEEDED b4"
+		B4="yes"
+	;;
 	\?)
 		usage "Invalid option: -$OPTARG"
 		exit 1
@@ -1275,16 +1280,25 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLP" opt; do
 	esac
 done
 
-if [ -z "${TEST_BRANCH}${BASE_BRANCH}${PATCH_DIR}${TEST_TOP}" ]; then
-	usage "Need at least 1 test type"
-	exit 2
-fi
-
 if [ -n "${CROSS_COMPILE}" ]; then
 	APPS_NEEDED="$APPS_NEEDED ${CROSS_COMPILE}gcc"
 fi
 
 if ! recommend_missing_application; then
+	exit 2
+fi
+
+if [ -n "${B4}" ]; then
+	BASE_BRANCH="$(b4 prep --show-info start-commit 2>/dev/null)"
+	TEST_BRANCH="$(b4 prep --show-info end-commit 2>/dev/null)"
+	if [ "$BASE_BRANCH" = "" -o "$TEST_BRANCH" = "" ]; then
+		usage "B4 failed to find start-commit or end-commit"
+		exit 1
+	fi
+fi
+
+if [ -z "${TEST_BRANCH}${BASE_BRANCH}${PATCH_DIR}${TEST_TOP}" ]; then
+	usage "Need at least 1 test type"
 	exit 2
 fi
 
