@@ -54,7 +54,7 @@ download_build_install_python_deps()
 	python -m pip install --upgrade setuptools
 	python -m pip install --upgrade ruamel.yaml
 	# scripts/spdxcheck.py dependencies
-	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt
+	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt b4
 	python -m pip install git+https://github.com/devicetree-org/dt-schema.git@$DTSCHEMA_REV
 	# Install patchwise and it's dependencies
 	python -m pip install git+https://github.com/nmenon/PatchWise.git@kernel_patch_verify_patchwise
