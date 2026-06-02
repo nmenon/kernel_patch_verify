@@ -23,6 +23,7 @@ RUN apt-get update \
 		gettext \
 		gnupg2 \
 		gosu \
+		kmod \
 		libcurl4-gnutls-dev \
 		libelf-dev \
 		libexpat1-dev \
