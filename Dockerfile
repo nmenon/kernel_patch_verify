@@ -15,6 +15,7 @@ RUN apt-get update \
 		ca-certificates \
 		ccache \
 		codespell \
+		cpio \
 		diffstat \
 		dumb-init \
 		flex \
