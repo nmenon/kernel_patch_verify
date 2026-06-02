@@ -7,8 +7,8 @@ NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
 export GIT_TAG=v2.54.0
-# https://git.kernel.org/pub/scm/utils/dtc/dtc.git
-export DTC_TAG=v1.7.2
+# https://git.kernel.org/pub/scm/utils/dtc/dtc.git (latest)
+export DTC_TAG=v1.8.1
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
 export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
