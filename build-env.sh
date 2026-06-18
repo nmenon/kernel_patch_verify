@@ -14,7 +14,7 @@ export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2026.04
+export DTSCHEMA_REV=v2026.06
 # https://github.com/masoncl/review-prompts
 export REVIEW_PROMPTS=main
 # https://github.com/facebookexperimental/semcode
