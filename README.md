@@ -136,6 +136,11 @@ For `-C` or "complete tests", the following are needed:
 
 - spatch: is provided by the coccinelle package in ubuntu
 
+Dts/dtsi/dtso files touched by a patch are checked by default (no `-C` needed)
+against `scripts/dtc/dt-check-style` in strict mode, enforcing the rules in
+`Documentation/devicetree/bindings/dts-coding-style.rst`. This is skipped
+automatically on kernel trees that don't have that script yet.
+
 :warning: **If your changes include dtb changes, then please optimize your
 `.config`, since dtbscheck will take significant time!**
 
