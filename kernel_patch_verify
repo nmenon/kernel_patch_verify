@@ -390,6 +390,25 @@ btest_refcheckdocs() {
 	kmake_single refcheckdocs 1>&2
 }
 
+doctest_htmldocs() {
+	local test_paths=()
+	# No files in Documentation/, so no need to build the doc
+	if [ "$@" = "" ]; then
+		return
+	fi
+	# Extract directories to only build needed Documentation directories and
+	# not the entire documentation. If a root file is modified we have to
+	# build the whole documentation.
+	# Documentation/hid/index.rst => hid
+	# Documentation/devicetree/bindings/index.rst => devicetree/bindings
+	# Documentation/index.rst => .
+	for i in "$@"
+	do
+		test_paths="$(echo $i | sed 's|^Documentation/\(.*\)/.*$|\1|; t; s|^Documentation/.*$|.|')"
+	done
+	kmake SPHINXOPTS='-vv' SPHINXDIRS="${test_paths[@]}" cleandocs htmldocs >/dev/null
+}
+
 btest_kbuild() {
 	if [ "$UBOOT_TESTING" -eq 0 ]; then
 		kmake C=1 $KP_TARGETS "$MODULES" > /dev/null
@@ -645,6 +664,7 @@ test_patch() {
 	readarray -t ofiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")"
 	readarray -t yfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.yaml$'|sort)"
 	readarray -t dfiles <<< "$(diffstat -lp1 "$patch"|grep 'boot/dts'|grep -v 'Makefile'|sort)"
+	readarray -t docfiles <<< "$(diffstat -lp1 "$patch"|grep '^Documentation'|sort)"
 
 	# Run sequential tests
 	TESTS_P_SET="ptest_am ptest_check"
@@ -672,12 +692,17 @@ test_patch() {
 		TESTS_D_SET="$TESTS_D_SET dtest_dtbs_check"
 		DWARNING="(dtbs_check is enabled, HIGHLY RECOMMEND custom .config to save time)"
 	fi
+	# Run Documentation tests
+	if [ -n "$DOC_TESTS" ]; then
+		TESTS_DOC_SET="doctest_htmldocs"
+	fi
 
 	echo "Tests to run on C files(parallel): $TESTS_C_SET"
 	echo "Tests to run on yaml files: $TESTS_Y_SET"
 	echo "Tests to run on dtb files$DWARNING: $TESTS_D_SET"
 	echo "Tests to run on Patch: $TESTS_P_SET"
 	echo "Tests to run on Build: $TESTS_B_SET"
+	echo "Tests to run on Documentation: $TESTS_DOC_SET"
 
 	run_test start "$TEST_DIR" defconfig
 	# run twice - we just want end build errors..
@@ -713,6 +738,11 @@ test_patch() {
 		wait "$pid"
 	done
 	PIDS=""
+
+	for test_s in $TESTS_DOC_SET
+	do
+		run_test start "$TEST_DIR" "$test_s" "${docfiles[@]}"
+	done
 
 	for test_s in $TESTS_P_SET
 	do
@@ -754,6 +784,11 @@ test_patch() {
 		wait "$pid"
 	done
 	PIDS=""
+
+	for test_s in $TESTS_DOC_SET
+	do
+		run_test end "$TEST_DIR" "$test_s" "${docfiles[@]}"
+	done
 }
 
 report_patch() {
@@ -761,7 +796,7 @@ report_patch() {
 	log_marker "::test results START " "$(basename "$1")" "::"
 	log_me "Subject: $Subject"
 	echo -en "\n" "$(basename "$1")" "Tests: " >> "$LOG_SUMMARY_FILE"
-	report_tests defconfig btest_kbuild "$TESTS_C_SET" "$TESTS_B_SET" "$TESTS_P_SET" "$TESTS_Y_SET" "$TESTS_D_SET"
+	report_tests defconfig btest_kbuild "$TESTS_C_SET" "$TESTS_B_SET" "$TESTS_P_SET" "$TESTS_Y_SET" "$TESTS_D_SET" "$TESTS_DOC_SET"
 	log_marker "::test results END" "$(basename "$1")" "::"
 }
 
@@ -969,6 +1004,13 @@ check_missing_application() {
 		fi
 	done
 
+	# Documentation has its own script to find missing dependencies
+	# depending the distro, so use it.
+	if [ -n "$DOC_TESTS" ]; then
+		tools/docs/sphinx-pre-install --no-pdf >/dev/null 2>&1 || \
+			APPS_MISSING="$APPS_MISSING sphinx-pre-install"
+	fi
+
 	# Check for optional tools (Claude, review_one.sh, semcode)
 
 	# Check if claude command is available
@@ -1011,6 +1053,7 @@ recommend_missing_application() {
 			done
 		fi
 		echo "" >&2
+		echo "sphinx-pre-install means some dependencies are missing to build the kernel doc, run 'tools/docs/sphinx-pre-install --pdf' for more details" >&2
 		echo "Please install the missing applications and try again." >&2
 		return 2
 	fi
@@ -1054,7 +1097,8 @@ usage() {
 		"-Z : Dont filter dtb warnings ($DTB_FILTER_LIST)" \
 		"-m : maximum line length number to be passed on to checkpatch.pl" \
 		"-S smatch_script : Provide a custom smatch_script instead of creating our own" \
-		"-s : Test current b4 branch, it automatically sets test_branch and base_branch"
+		"-s : Test current b4 branch, it automatically sets test_branch and base_branch" \
+		"-H : Build kernel documentation (make htmldocs)"
 
 	printf '%s\n' \
 		'' \
@@ -1101,7 +1145,7 @@ ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
 PATCHWISE=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPs" opt; do
+while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPsH" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -1281,6 +1325,11 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPs" opt; do
 	s)
 		APPS_NEEDED="$APPS_NEEDED b4"
 		B4="yes"
+	;;
+	H)
+		# check_missing_application will automatically run
+		# sphinx-pre-install script to get missing dependencies
+		DOC_TESTS=1
 	;;
 	\?)
 		usage "Invalid option: -$OPTARG"
