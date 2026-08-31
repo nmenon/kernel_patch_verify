@@ -54,7 +54,9 @@ download_build_install_python_deps()
 	python -m pip install --upgrade setuptools
 	python -m pip install --upgrade ruamel.yaml
 	# scripts/spdxcheck.py dependencies
-	python -m pip install --upgrade  ply gitpython yamllint rfc3987 pylibfdt b4
+	python -m pip install --upgrade  ply gitpython yamllint rfc3987 b4
+	# Workaround for python 3.13 changes
+	pip install "git+https://github.com/rpardini/devicetree-pylibfdt.git@sync-with-upstream-26.08"
 	# Install boardrd to build initramfs as needed for developers.
 	# At least till dracut is capable of doing this workflow
 	pip install "git+https://github.com/nmenon/boardrd.git@main"
