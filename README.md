@@ -239,7 +239,8 @@ framework. This provides intelligent, context-aware reviews of complete patch se
 To use this feature:
 1. Install Claude Code: https://code.claude.com/docs/en/setup
 2. Install review-prompts: https://github.com/masoncl/review-prompts
-3. Use the `-A` option to enable AI review
+3. Optionally set `KPV_CLAUDE_SETTINGS` variable to point to custom claude settings.json file.
+4. Use the `-A` option to enable AI review
 
 Example:
 ```bash
@@ -366,6 +367,7 @@ DOCKER_NETWORK_HOST=1 OPENAI_API_PROVIDER=http://localhost:8080 kpv -V -L -P -1
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `KPV_CLAUDE_SETTINGS` | *(not set)* | Defaults to using `$HOME/.claude/settings.json`, use this variable to over-ride the claude settings file to use in the container |
 | `AI_LOG_ALWAYS` | *(not set)* | Set to `1` to always include AI thought process in the log, even when no review comments are generated. Default: only logged when review comments exist. |
 | `CLAUDE_MODEL` | *(Claude default)* | Override the Claude model used for AI review. If unset and `OPENAI_API_MODEL` is set, that value is used instead. |
 | `REVIEW_PROMPTS_DIR` | `/usr/local/share/review-prompts` | Path to the `review-prompts` installation. Set if installed in a non-default location. |
