@@ -84,7 +84,7 @@ extra_paths=(
 
 # Mount Claude settings if they exist
 if [ -z "$KPV_CLAUDE_SETTINGS" ]; then
-	KPV_CLAUDE_SETTINGS = "$HOME/.claude/settings.json"
+	KPV_CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 fi
 if [ -f "$KPV_CLAUDE_SETTINGS" ]; then
 	DOCKER_ARGS+=(-v "$KPV_CLAUDE_SETTINGS":/config/.claude/settings.json)
