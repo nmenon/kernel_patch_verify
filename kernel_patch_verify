@@ -660,7 +660,7 @@ report_tests_end() {
 
 test_patch() {
 	patch=$1
-	readarray -t cfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.c$'|sort)"
+	readarray -t cfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.[ch]$'|sort)"
 	readarray -t ofiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.[Sc]$'|sort|sed -e "s/[Sc]$/o/g")"
 	readarray -t yfiles <<< "$(diffstat -lp1 "$patch"|grep -P '\.yaml$'|sort)"
 	readarray -t dfiles <<< "$(diffstat -lp1 "$patch"|grep 'boot/dts'|grep -v 'Makefile'|sort)"
