@@ -23,6 +23,11 @@ export SEMCODE_TAG=main
 export CLAUDE_VERSION=2.1.87
 
 ARIA_OPTS=( --summary-interval=5 --timeout=180 --retry-wait=10 -m 0 -x 10 -j 10 )
+
+export RUSTUP_HOME=/usr/local/rustup
+export CARGO_HOME=/usr/local/cargo
+export PATH="/usr/local/cargo/bin:$PATH"
+
 # Get latest pip and packages in the "virtual env"
 if [ -f "/usr/local/venv/bin/activate" ]; then
 	. /usr/local/venv/bin/activate
@@ -170,8 +175,14 @@ download_and_install_claude()
 	HOME=/config /usr/local/share/review-prompts/setup.sh claude kernel
 }
 
-# Install Rust and semcode
-download_and_install_rust_semcode()
+# Install Rust
+download_and_install_rust()
+{
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+}
+
+# Install semcode
+download_and_install_semcode()
 {
 	local FILE URL
 	FILE='semcode'
@@ -181,18 +192,18 @@ download_and_install_rust_semcode()
 	export RUSTUP_HOME=/usr/local/rustup
 	export CARGO_HOME=/usr/local/cargo
 	export PATH="/usr/local/cargo/bin:$PATH"
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 	cargo build --release --target-dir=/tmp/$FILE/release
 	cp -rvf /tmp/$FILE/release/* /usr/local/bin/
 }
 
+download_and_install_rust
 download_build_install_git
 download_build_install_python_deps
 download_build_install_dtc
 download_build_install_smatch
 download_build_install_sparse
 download_and_install_claude
-download_and_install_rust_semcode
+download_and_install_semcode
 
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64
