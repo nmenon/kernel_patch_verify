@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=v2.54.0
+export GIT_TAG=v2.55.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git (latest)
 export DTC_TAG=v1.8.1
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
@@ -14,7 +14,7 @@ export SPARSE_TAG=master
 # https://repo.or.cz/smatch.git
 export SMATCH_TAG=master
 # https://github.com/devicetree-org/dt-schema/tags
-export DTSCHEMA_REV=v2026.06
+export DTSCHEMA_REV=v2026.09
 # https://github.com/masoncl/review-prompts
 export REVIEW_PROMPTS=main
 # https://github.com/facebookexperimental/semcode
