@@ -6,7 +6,7 @@ shopt -s expand_aliases
 NPROC=$(nproc)
 
 # https://git.kernel.org/pub/scm/git/git.git/
-export GIT_TAG=v2.55.0
+export GIT_TAG=v2.56.0
 # https://git.kernel.org/pub/scm/utils/dtc/dtc.git (latest)
 export DTC_TAG=v1.8.1
 # https://git.kernel.org/pub/scm/devel/sparse/sparse.git
@@ -189,12 +189,18 @@ download_and_install_semcode()
 	URL="https://github.com/facebookexperimental/semcode"
 
 	clone_and_cd "$SEMCODE_TAG" "$URL" "$FILE"
-	export RUSTUP_HOME=/usr/local/rustup
-	export CARGO_HOME=/usr/local/cargo
-	export PATH="/usr/local/cargo/bin:$PATH"
 	cargo build --release --target-dir=/tmp/$FILE/release
 	cp -rvf /tmp/$FILE/release/* /usr/local/bin/
 }
+
+download_and_install_sashiko()
+{
+	cargo install sashiko
+}
+
+export RUSTUP_HOME=/usr/local/rustup
+export CARGO_HOME=/usr/local/cargo
+export PATH="/usr/local/cargo/bin:$PATH"
 
 download_and_install_rust
 download_build_install_git
@@ -204,6 +210,7 @@ download_build_install_smatch
 download_build_install_sparse
 download_and_install_claude
 download_and_install_semcode
+download_and_install_sashiko
 
 if [ "$INSTALL_GCC" == "1" ]; then
 	download_and_install_armgcc_64
