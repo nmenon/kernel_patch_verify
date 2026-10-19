@@ -593,6 +593,49 @@ series_ai_review() {
 	fi
 }
 
+# Sashiko review for complete series (opt-in via -R; failures are non-fatal)
+series_sashiko_review() {
+	local start_sha end_sha log cfg rc v set_vars=""
+	log="${LOG_DIR:-$TEST_DIR}/sashiko.log"
+	end_sha=$(git -C "$KDIR" rev-parse HEAD)
+	start_sha=$(git -C "$KDIR" rev-parse "HEAD~$PATCHCOUNT")
+
+	if [ -n "$SASHIKO_CONFIG" ] && [ -f "$SASHIKO_CONFIG" ]; then
+		cfg="$SASHIKO_CONFIG"
+	elif [ -f "${XDG_CONFIG_HOME:-/nonexistent}/sashiko.toml" ]; then
+		cfg="$XDG_CONFIG_HOME/sashiko.toml"
+	elif [ -f "$HOME/.config/sashiko.toml" ]; then
+		cfg="$HOME/.config/sashiko.toml"
+	else
+		cfg="$TEST_DIR/sashiko.toml"
+		sashiko init --print > "$cfg" 2>/dev/null
+	fi
+
+	echo "Running Sashiko review on complete series ($PATCHCOUNT patches): ${start_sha}..${end_sha}" 1>&2
+	echo "Sashiko settings: $cfg" 1>&2
+
+	# stdin from /dev/null: sashiko prompts [y/N] on a dirty tree if stdin is a TTY
+	{ ( cd "$KDIR" && sashiko review "${start_sha}..${end_sha}" --color never --settings "$cfg" </dev/null ); } 2>&1 | tee "$log" >&2
+	rc=${PIPESTATUS[0]}
+	echo "sashiko exit status: $rc" | tee -a "$log" >&2
+
+	case "$rc" in
+	0) ;;
+	1) echo "Sashiko: high/critical findings reported (see log: $log)" 1>&2 ;;
+	3)
+		for v in SASHIKO_CONFIG SASHIKO__AI__PROVIDER SASHIKO__AI__MODEL OPENAI_API_KEY GEMINI_API_KEY LLM_API_KEY ANTHROPIC_API_KEY; do
+			[ -n "${!v}" ] && set_vars="$set_vars $v"
+		done
+		echo "Sashiko error (exit 3): check LLM provider config/credentials. Set of: ${set_vars:- (none)}" 1>&2
+	;;
+	*) echo "Sashiko exited with status $rc (non-fatal)" 1>&2 ;;
+	esac
+
+	# sashiko creates git worktrees in /tmp; drop stale registrations
+	git -C "$KDIR" worktree prune 1>&2
+	return 0
+}
+
 # executed in sequence
 tests_start() {
 	echo "Running start tests.."
@@ -909,6 +952,11 @@ report_tests() {
 		cat "$LOG_DIR/ai-review.log" >> "$LOG_FILE"
 	fi
 
+	if [ -f "${LOG_DIR:-$TEST_DIR}/sashiko.log" ]; then
+		log_marker "Sashiko Review:"
+		cat "${LOG_DIR:-$TEST_DIR}/sashiko.log" >> "$LOG_FILE"
+	fi
+
 	if [ -f "$LOG_DIR/patch-wise.log" ]; then
 		log_marker "Patchwise Report:"
 		cat "$LOG_DIR/patch-wise.log" >> "$LOG_FILE"
@@ -1071,7 +1119,7 @@ usage() {
 
 	printf '%s\n' \
 		'' \
-		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-A] [-M lore_lists] [-P] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
+		"Usage: $APP_NAME [-d | -V] [-j CPUs] [-B build_target] [-O build_output_dir] [-T tmp_dir_base] [-l logfile] [-C] [-A] [-M lore_lists] [-P] [-R] [-c defconfig_name] [-n N][-1..9]|[-p patch_dir]|[-b base_branch [-t head_branch]] [-S smatch_script] -U -Z" \
 		''
 
 	printf '\t%s\n' \
@@ -1087,6 +1135,7 @@ usage() {
 		"-A: run AI review on complete series with Claude review_one.sh using --range (requires Claude and review-prompts)" \
 		"-M lore_lists: comma-separated list of lore.kernel.org mailing lists to index with semcode (default: $DEF_LORE_LISTS)" \
 		"-P: run patchwise tests(WARNING: could take significant time!)" \
+		"-R: run Sashiko review on complete series (opt-in, not part of -C; slow and may incur LLM cost; sends patch and repo context to the configured LLM provider; needs sashiko and LLM provider config)" \
 		"-c defconfig: name (default uses current .config + olddefconfig)" \
 		"-[1..9]: test the tip of current branch (1 to 9 number of patches)" \
 		"-n N: test the tip of current branch with 'N' number of patches" \
@@ -1125,6 +1174,8 @@ usage() {
 		"$APP_NAME -A -b base_branch -t test_branch" \
 		"Example usage 6c: verify with AI review and custom lore mailing lists" \
 		"$APP_NAME -A -M linux-arm-kernel,lkml/0 -1" \
+		"Example usage 6d: verify last 3 patches with Sashiko series review" \
+		"$APP_NAME -R -n 3" \
 		"Example usage 7: on a native x86 build using make, gcc and bzImage, 1 patch" \
 		"$APP_NAME -B bzImage -1" \
 		"Example usage 7: on a cross_compiled ARM build using defaults, 1 patch" \
@@ -1145,7 +1196,8 @@ ORIDE=0
 DTB_NOSKIP=0
 BUILD_OUTPUT_DIR=""
 PATCHWISE=0
-while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPsH" opt; do
+KPV_SASHIKO=0
+while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPRsH" opt; do
 	case $opt in
 	j)
 		KM_CPUS=$OPTARG
@@ -1259,6 +1311,10 @@ while getopts "S:n:j:c:T:B:l:p:b:t:m:M:O:123456789ACdDUVZLPsH" opt; do
 			usage "Cannot run patchwise without OPENAI_API_KEY"
 			exit 1
 		fi
+	;;
+	R)
+		KPV_SASHIKO=1
+		APPS_NEEDED="$APPS_NEEDED sashiko"
 	;;
 	[1-9])
 		TEST_TOP=yes
@@ -1518,6 +1574,10 @@ tests_end
 # Run AI review on complete series if requested
 if [ $AI_REVIEW -eq 1 ]; then
 	series_ai_review
+fi
+
+if [ "$KPV_SASHIKO" -eq 1 ]; then
+	series_sashiko_review
 fi
 
 if [ "$PATCHWISE" -eq 1 ]; then

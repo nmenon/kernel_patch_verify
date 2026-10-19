@@ -152,13 +152,14 @@ Usage:
 ======
 
 ```
-./kernel_patch_verify [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]
+./kernel_patch_verify [-d] [-j CPUs] [-B build_target] [-T tmp_dir_base] [-l logfile] [-C] [-R] [-c defconfig_name] [-1]|[-p patch_dir]|[-b base_branch [-t head_branch]]
 	-d: if not already defined, use CROSS_COMPILE=arm-linux-gnueabi-, ARCH=arm, and builds for ' zImage dtbs' build targets
 	-j CPUs: override default CPUs count with build (default is 4)
 	-B build_target: override default build target and use provided build_target
 	-T temp_dir_base: temporary directory base (default is /tmp)
 	-l logfile: report file (defaults to ./report-kernel-patch-verify.txt)
 	-C: run Complete tests(WARNING: could take significant time!)
+	-R: run Sashiko review over the patch series (opt-in, non-fatal, output to sashiko.log)
 	-c defconfig:_name (default uses current .config + oldconfig)
 	-1: test the tip of current branch (just a single patch)
 	-p patch_dir: which directory to take patches from (expects sorted in order)
@@ -316,6 +317,25 @@ This test can execute multiple tests already performed, but it is just additiona
 review tool that is available. Expect to see some significant time spend in this
 check.
 
+Notes on Sashiko
+================
+
+Sashiko is an opt-in AI review step that runs `sashiko review` over the selected patch series after the standard verification tests are completed.
+
+* **Execution:** Use the `-R` option. It is a separate step from the comprehensive `-C` tests.
+* **Output:** Progress is printed to `stderr`. Detailed review results are written to `sashiko.log` in the log directory and are included in the final consolidated report.
+* **Exit Codes:** Sashiko exit codes are non-fatal to the overall `kpv` run. An exit code of `1` indicates high/critical findings were found, while `3` indicates an error occurred.
+* **Privacy and Cost:** Be aware that the patch content and repository context are sent to the configured LLM provider. A Sashiko run is slow and may incur LLM API cost, scaling with series size, so budget time and cost before running `-R` on large series.
+
+Example:
+```bash
+# Run standard tests plus Sashiko review on the last patch
+kpv -R -1
+
+# Run comprehensive tests plus Sashiko review on a series
+kpv -C -R -b base_branch -t test_branch
+```
+
 Environment Variables Reference
 ================================
 
@@ -380,6 +400,38 @@ DOCKER_NETWORK_HOST=1 OPENAI_API_PROVIDER=http://localhost:8080 kpv -V -L -P -1
 | `OPENAI_API_KEY` | *(required for `-P`)* | API key for PatchWise. Also forwarded as `ANTHROPIC_API_KEY` inside the Docker container. |
 | `OPENAI_API_MODEL` | *(PatchWise default)* | Model override for PatchWise (e.g. `gpt-4o`). Also used as `CLAUDE_MODEL` fallback if `CLAUDE_MODEL` is not set. |
 | `OPENAI_API_PROVIDER` | *(none)* | LLM gateway provider if your organization uses an API proxy. |
+
+### Sashiko Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SASHIKO_*` / `SASHIKO__*` | *(none)* | User-defined Sashiko configuration variables, forwarded by name into the container. `SASHIKO__*` variables take precedence over all other settings. |
+| `SASHIKO_CONFIG` | *(not set)* | Path to user-provided Sashiko settings file. Used if present, mounted read-only at `/config/sashiko-user.toml` in the container. |
+| `SASHIKO_API_TOKEN` | *(not set)* | API token for the Sashiko daemon. Forwarded by name but only read by the `sashiko-cli` daemon, not by `sashiko review`. |
+| `GEMINI_API_KEY` | *(not set)* | API key for Gemini. Forwarded to the container. |
+| `LLM_API_KEY` | *(not set)* | Generic LLM API key. Forwarded to the container. |
+| `VLLM_API_KEY` | *(not set)* | API key for vLLM. Forwarded to the container. |
+| `ANTHROPIC_BASE_URL` | *(not set)* | Custom base URL for Anthropic API. Forwarded to the container. |
+| `OPENAI_API_KEY` | *(not set)* | API key for OpenAI. Forwarded to the container as-is. |
+| `OPENAI_API_MODEL` | *(not set)* | Model override for OpenAI. Mapped to `SASHIKO__AI__MODEL` if no Sashiko configuration is found. |
+| `OPENAI_API_PROVIDER` | *(not set)* | Provider for OpenAI-compatible gateways. Mapped to `SASHIKO__AI__PROVIDER` if no Sashiko configuration is found. |
+
+**Precedence and Provider Rules:**
+
+1. Explicit `SASHIKO__*` variables always take precedence.
+2. User's Sashiko settings file (`$SASHIKO_CONFIG`, `$XDG_CONFIG_HOME/sashiko.toml`, or `~/.config/sashiko.toml`) takes precedence over all mappings.
+3. If no settings file is found, `OPENAI_API_MODEL` and `OPENAI_API_PROVIDER` are mapped to Sashiko settings.
+4. If no configuration is found at all, Sashiko defaults to `gemini` (will exit with error if `GEMINI_API_KEY` is missing).
+
+**Provider Mapping:**
+* `anthropic` → `claude`
+* `http(s)://` → `openai-compatible` (uses the URL as the base URL)
+* Supported: `gemini`, `claude`, `openai`, `openai-compatible`, `vllm`, `ollama`, `*-cli`
+
+**Pitfall: Ollama URL**
+When using Ollama, the base URL must include the `/v1` suffix (e.g., `http://host:11434/v1`). Sashiko's OpenAI normalization will not add it automatically if it's missing.
+
+**Tip:** For local Ollama servers, set `DOCKER_NETWORK_HOST=1` to allow the container to reach `localhost`.
 
 Example `~/.bashrc` configuration:
 

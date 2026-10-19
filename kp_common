@@ -123,4 +123,81 @@ if [ -n "${OPENAI_API_KEY}" ]; then
 	fi
 fi
 
+# Sashiko (sashiko-review) settings. Sashiko reads SASHIKO_CONFIG, else
+# $XDG_CONFIG_HOME/sashiko.toml, else $HOME/.config/sashiko.toml, and layers
+# SASHIKO__* environment variables on top. Mirror that lookup here.
+sashiko_cfg=""
+if [ -n "${SASHIKO_CONFIG:-}" ]; then
+	if [ -f "${SASHIKO_CONFIG}" ]; then
+		sashiko_cfg="${SASHIKO_CONFIG}"
+	else
+		echo "Warning: SASHIKO_CONFIG=${SASHIKO_CONFIG} is not a regular file; ignoring it" >&2
+	fi
+elif [ -n "${XDG_CONFIG_HOME:-}" ]; then
+	if [ -f "${XDG_CONFIG_HOME}/sashiko.toml" ]; then
+		sashiko_cfg="${XDG_CONFIG_HOME}/sashiko.toml"
+	fi
+elif [ -f "${HOME}/.config/sashiko.toml" ]; then
+	sashiko_cfg="${HOME}/.config/sashiko.toml"
+fi
+
+if [ -n "${sashiko_cfg}" ]; then
+	# User's own settings win: mount read-only, do not map OPENAI_API_* over it.
+	DOCKER_ARGS+=(-v "${sashiko_cfg}":/config/sashiko-user.toml:ro)
+	DOCKER_ARGS+=(-e SASHIKO_CONFIG=/config/sashiko-user.toml)
+else
+	# Map the shared OPENAI_API_* variables, only where Sashiko is not set explicitly.
+	if [ -n "${OPENAI_API_MODEL:-}" ] && [ -z "${SASHIKO__AI__MODEL+x}" ]; then
+		export SASHIKO__AI__MODEL="${OPENAI_API_MODEL}"
+	fi
+	if [ -n "${OPENAI_API_PROVIDER:-}" ] && [ -z "${SASHIKO__AI__PROVIDER+x}" ]; then
+		case "${OPENAI_API_PROVIDER}" in
+		http://*|https://*)
+			export SASHIKO__AI__PROVIDER=openai-compatible
+			if [ -z "${SASHIKO__AI__OPENAI_COMPAT__BASE_URL+x}" ]; then
+				export SASHIKO__AI__OPENAI_COMPAT__BASE_URL="${OPENAI_API_PROVIDER}"
+			fi
+			if [ -z "${DOCKER_NETWORK_HOST:-}" ]; then
+				case "${OPENAI_API_PROVIDER}" in
+				*://localhost*|*://127.0.0.1*)
+					echo "Hint: ${OPENAI_API_PROVIDER} points at localhost; set DOCKER_NETWORK_HOST=1 so the container can reach it" >&2
+					;;
+				esac
+			fi
+			;;
+		*)
+			sashiko_prov=$(printf '%s' "${OPENAI_API_PROVIDER}" | tr '[:upper:]' '[:lower:]')
+			case "${sashiko_prov}" in
+			anthropic) sashiko_prov=claude ;;
+			gemini|claude|openai|openai-compatible|vllm|ollama|*-cli) ;;
+			*)
+				echo "Warning: OPENAI_API_PROVIDER=${OPENAI_API_PROVIDER} is not a known Sashiko provider; not mapped" >&2
+				sashiko_prov=""
+				;;
+			esac
+			if [ -n "${sashiko_prov}" ]; then
+				export SASHIKO__AI__PROVIDER="${sashiko_prov}"
+			fi
+			;;
+		esac
+	fi
+fi
+
+# Forward every SASHIKO_* / SASHIKO__* variable by name (never NAME=value so
+# secrets stay out of the docker argument list). SASHIKO_CONFIG is handled above.
+for sashiko_var in $(compgen -e); do
+	case "${sashiko_var}" in
+	SASHIKO_CONFIG) ;;
+	SASHIKO_*) DOCKER_ARGS+=(-e "${sashiko_var}") ;;
+	esac
+done
+for passthru_var in GEMINI_API_KEY LLM_API_KEY VLLM_API_KEY ANTHROPIC_BASE_URL; do
+	if [ -n "${!passthru_var:-}" ]; then
+		DOCKER_ARGS+=(-e "${passthru_var}")
+	fi
+done
+if [ -z "${OPENAI_API_KEY:-}" ] && [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+	DOCKER_ARGS+=(-e ANTHROPIC_API_KEY)
+fi
+
 KP_PATH=$(IFS=:; printf '%s' "${extra_paths[*]}")
