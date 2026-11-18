@@ -680,7 +680,7 @@ test_patch() {
 		TESTS_C_SET="$TESTS_C_SET ftest_check_includes ftest_check_headerdeps"
 	fi
 	# Run YAML tests
-	TESTS_Y_SET="ytest_dt_binding_check"
+	TESTS_Y_SET="ytest_dt_binding_check dtest_style_check"
 	if [ -n "$COMPLETE_TESTS" ]; then
 		# Nothing special to do here..
 		TESTS_Y_SET="$TESTS_Y_SET ytest_dtbs_check"
